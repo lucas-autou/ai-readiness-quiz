@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { insertQuizResponse, insertLead } from '@/lib/supabase';
-import { storeAIReport } from '@/lib/reportStore';
+// import { storeAIReport } from '@/lib/reportStore'; // Temporarily disabled for debugging
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
@@ -206,7 +206,8 @@ export async function POST(request: NextRequest) {
     // Store AI report in memory store as fallback if database doesn't have the column
     if (aiReport && !result.ai_report) {
       console.log('📝 Storing AI report in memory store as fallback...');
-      storeAIReport(result.id.toString(), aiReport);
+      // storeAIReport(result.id.toString(), aiReport); // Temporarily disabled for debugging
+      console.log('📝 Report storage temporarily disabled for serverless debugging');
     }
 
     // Insert or update lead
