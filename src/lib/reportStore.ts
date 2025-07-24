@@ -1,39 +1,23 @@
-// Temporary file-based store for AI reports until database migration
-// In production, this would be stored in the database
+// Serverless-compatible report store
+// Uses in-memory storage for Vercel deployment (stateless functions)
+// In production, reports should be stored directly in Supabase database
 
-import * as fs from 'fs';
-import * as path from 'path';
-
-const REPORTS_DIR = path.join(process.cwd(), '.temp-reports');
-
-// Ensure reports directory exists
-if (!fs.existsSync(REPORTS_DIR)) {
-  fs.mkdirSync(REPORTS_DIR, { recursive: true });
-}
+// In-memory storage for the current function execution
+const reportCache = new Map<string, { report: string; timestamp: number }>();
 
 export function storeAIReport(responseId: string, report: string): void {
   try {
-    console.log('📝 Storing report for key:', responseId, 'length:', report.length);
-    const filePath = path.join(REPORTS_DIR, `${responseId}.json`);
-    const data = {
-      responseId,
+    console.log('📝 Storing report in memory for key:', responseId, 'length:', report.length);
+    
+    reportCache.set(responseId, {
       report,
       timestamp: Date.now()
-    };
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    console.log('📝 Report stored to file:', filePath);
+    });
     
-    // Clean up old reports after 24 hours
-    setTimeout(() => {
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log('🗑️ Cleaned up old report:', responseId);
-        }
-      } catch (error) {
-        console.error('Error cleaning up report:', error);
-      }
-    }, 24 * 60 * 60 * 1000);
+    console.log('📝 Report stored in memory cache');
+    
+    // Note: In serverless environment, this data only persists for the current function execution
+    // For production, store directly in Supabase database instead
   } catch (error) {
     console.error('❌ Error storing AI report:', error);
   }
@@ -41,17 +25,16 @@ export function storeAIReport(responseId: string, report: string): void {
 
 export function getAIReport(responseId: string): string | null {
   try {
-    console.log('🔍 Looking for report file:', responseId);
-    const filePath = path.join(REPORTS_DIR, `${responseId}.json`);
+    console.log('🔍 Looking for report in memory cache:', responseId);
     
-    if (!fs.existsSync(filePath)) {
-      console.log('🔍 Report file not found:', filePath);
+    const cached = reportCache.get(responseId);
+    if (!cached) {
+      console.log('🔍 Report not found in memory cache');
       return null;
     }
     
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    console.log('🔍 Found report file, length:', data.report?.length || 0);
-    return data.report || null;
+    console.log('🔍 Found report in cache, length:', cached.report?.length || 0);
+    return cached.report || null;
   } catch (error) {
     console.error('❌ Error reading AI report:', error);
     return null;
@@ -61,15 +44,10 @@ export function getAIReport(responseId: string): string | null {
 export function getAllStoredReports(): { [responseId: string]: string } {
   try {
     const reports: { [responseId: string]: string } = {};
-    const files = fs.readdirSync(REPORTS_DIR);
     
-    files.forEach(file => {
-      if (file.endsWith('.json')) {
-        const responseId = file.replace('.json', '');
-        const report = getAIReport(responseId);
-        if (report) {
-          reports[responseId] = report;
-        }
+    reportCache.forEach((data, responseId) => {
+      if (data.report) {
+        reports[responseId] = data.report;
       }
     });
     
