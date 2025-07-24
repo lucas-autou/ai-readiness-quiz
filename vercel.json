@@ -1,24 +1,5 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "env": {
-    "ANTHROPIC_API_KEY": "@anthropic-api-key",
-    "SUPABASE_URL": "@supabase-url",
-    "SUPABASE_ANON_KEY": "@supabase-anon-key",
-    "EMAIL_SERVICE_KEY": "@email-service-key"
-  },
-  "build": {
-    "env": {
-      "ANTHROPIC_API_KEY": "@anthropic-api-key",
-      "SUPABASE_URL": "@supabase-url", 
-      "SUPABASE_ANON_KEY": "@supabase-anon-key",
-      "EMAIL_SERVICE_KEY": "@email-service-key"
-    }
-  },
-  "regions": ["cle1", "iad1"],
   "functions": {
     "app/api/**/*.ts": {
       "runtime": "nodejs20.x",

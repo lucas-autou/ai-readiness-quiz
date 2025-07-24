@@ -1,7 +1,8 @@
-import Database from 'better-sqlite3';
+// Note: SQLite disabled for Vercel deployment (serverless incompatible)
+// Using Supabase instead via supabase.ts
 import { z } from 'zod';
 
-const db = new Database('quiz.db');
+// const db = new Database('quiz.db'); // Disabled for Vercel
 
 export const QuizResponseSchema = z.object({
   id: z.number().optional(),
@@ -27,6 +28,8 @@ export const LeadSchema = z.object({
 
 export type Lead = z.infer<typeof LeadSchema>;
 
+// SQLite functions disabled for Vercel - use Supabase instead
+/*
 db.exec(`
   CREATE TABLE IF NOT EXISTS quiz_responses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,3 +77,7 @@ export const getQuizResponsesByEmail = db.prepare(`
 `);
 
 export default db;
+*/
+
+// For Vercel deployment, all database operations are handled via Supabase
+// See src/lib/supabase.ts for database functions
