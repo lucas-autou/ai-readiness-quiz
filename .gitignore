@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local database files
+*.db
+quiz.db
+
+# temporary files and reports
+.temp-reports/
+CRITICAL_EVALUATION.md
+VALIDATION_REPORT.md
+test-manual.html
+test-page.html
+server.log
+setup-complete-check.js
+
+# supabase setup files
+supabase_setup.sql
+
+# custom documentation
+claude.md

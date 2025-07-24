@@ -1,0 +1,59 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getQuizResponseById } from '@/lib/supabase';
+import { getAIReport } from '@/lib/reportStore';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Response ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get quiz response by ID
+    const result = await getQuizResponseById(id);
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Quiz response not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use the AI report from database first, then fallback to store, then error message
+    const storedReport = getAIReport(id);
+    console.log('🔍 Looking for report ID:', id, 'Found in DB:', !!result.ai_report, 'DB report length:', result.ai_report?.length || 0, 'Found in store:', !!storedReport);
+    const aiReport = result.ai_report || storedReport || `# Premium AI Report Not Available
+    
+Your AI Readiness Score of ${result.score}/100 has been calculated, but the detailed report is currently being generated. Please check back in a few minutes or contact support if this issue persists.
+
+## Quick Insights for ${result.company}
+- Score: ${result.score}/100
+- Industry: Professional assessment completed
+- Next Steps: Detailed recommendations will be available shortly
+
+Please refresh this page or contact our team for immediate assistance.`;
+
+    return NextResponse.json({
+      id: result.id,
+      email: result.email,
+      company: result.company,
+      jobTitle: result.job_title,
+      score: result.score,
+      createdAt: result.created_at,
+      responses: result.responses,
+      aiReport: aiReport
+    });
+
+  } catch (error) {
+    console.error('Error fetching results:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
