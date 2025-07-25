@@ -53,6 +53,10 @@ export const en: Translations = {
       description: 'Join 500+ executives who\'ve used our assessment to build their AI strategy with confidence.',
       button: 'Start Your Assessment',
     },
+    trustedBy: 'Trusted by leading companies',
+    leadersTransformed: 'leaders transformed',
+    satisfactionRate: 'satisfaction rate',
+    industriesServed: 'industries served',
   },
   
   quiz: {
@@ -188,12 +192,29 @@ export const en: Translations = {
     totalImplementationTimeline: 'Total Implementation Timeline',
     fromAssessmentToDeployment: 'From assessment to full deployment',
     months: 'Months',
-    executiveStrategySession: 'Executive Strategy Session Available',
+    weeks: 'Weeks',
+    timeToFirstResults: 'Time to First Results',
+    whenYouWillSeeResults: 'When You Will See Measurable Results',
+    firstMeasurableResults: 'First Measurable Results',
+    keyChallenges: 'KEY CHALLENGES',
+    departmentRoadmap: 'Department Roadmap',
+    careerPositioning: 'Career Positioning',
+    executiveStrategySession: 'Free Strategic Session Available',
     becomeTheAiChampion: 'Become the AI Champion',
     downloadFullReportPdf: 'Download Full Report (PDF)',
     thirtyMinuteConsultation: '30-minute consultation',
     noObligation: 'No obligation',
     seniorConsultant: 'Senior consultant',
+    scheduleStrategicSession: 'Schedule Free Strategic Session',
+    limitedSpotsWeek: 'Only 5 spots available this week',
+    whatYouGet: 'What you get:',
+    strategicSessionBenefits: {
+      expertTime: '30 minutes with senior AI specialist',
+      customPlan: 'Custom action plan for your department',
+      exclusiveTools: 'Exclusive templates and tools',
+      noCommitment: 'No commitment, 100% focused on results'
+    },
+    implementableIdeasGuarantee: '3 implementable ideas guaranteed + plan for results in weeks',
     backToHome: '← Back to Home',
     assessmentRevealsPath: 'This assessment reveals your path to AI leadership. Let&apos;s create a <strong>personalized implementation plan</strong> to advance your career while transforming your department at {company}.',
     loadingEllipsis: 'Loading...',
@@ -436,6 +457,11 @@ export const en: Translations = {
         "Large Enterprise - 1000-5000 employees, complex hierarchy",
         "Fortune 500/Global - 5000+ employees, multiple divisions and locations"
       ]
+    },
+    'operational-challenges': {
+      question: "Describe your biggest operational challenges or time-consuming processes (Optional)",
+      subtitle: "Share specific details about processes, pain points, or inefficiencies that affect your daily work. This helps us provide more personalized recommendations.",
+      placeholder: "Example: Creating weekly reports takes 6 hours because I need to pull data from 3 systems manually, coordinate with 2 departments for updates, and format everything in PowerPoint. The approval process gets stuck when managers are traveling..."
     },
     'current-tools': {
       question: "Which business tools does your team use most frequently?",

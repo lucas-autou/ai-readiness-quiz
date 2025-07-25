@@ -53,6 +53,10 @@ export const pt: Translations = {
       description: 'Junte-se a mais de 500 executivos que usaram nossa avaliação para construir sua estratégia de IA com confiança.',
       button: 'Comece Sua Avaliação',
     },
+    trustedBy: 'Empresas que confiam em nossa metodologia',
+    leadersTransformed: 'líderes transformados',
+    satisfactionRate: 'de satisfação',
+    industriesServed: 'indústrias atendidas',
   },
   
   quiz: {
@@ -187,17 +191,30 @@ export const pt: Translations = {
     startLearning: 'Começar a Aprender',
     totalImplementationTimeline: 'Cronograma Total de Implementação',
     fromAssessmentToDeployment: 'Da avaliação até a implantação completa',
-    timeToFirstResults: 'Tempo até os Primeiros Resultados',
-    whenYouWillSeeResults: 'Quando você começará a ver impacto mensurável',
-    weeks: 'Semanas',
-    firstMeasurableResults: 'Primeiros Resultados Mensuráveis',
     months: 'Meses',
-    executiveStrategySession: 'Sessão de Estratégia Executiva Disponível',
+    weeks: 'Semanas',
+    timeToFirstResults: 'Tempo para Primeiros Resultados',
+    whenYouWillSeeResults: 'Quando Você Verá Resultados Mensuráveis',
+    firstMeasurableResults: 'Primeiros Resultados Mensuráveis',
+    keyChallenges: 'DESAFIOS PRINCIPAIS',
+    departmentRoadmap: 'Roadmap do Departamento',
+    careerPositioning: 'Posicionamento de Carreira',
+    executiveStrategySession: 'Sessão Estratégica Gratuita Disponível',
     becomeTheAiChampion: 'Torne-se o Campeão de IA',
     downloadFullReportPdf: 'Baixar Relatório Completo (PDF)',
     thirtyMinuteConsultation: 'Consulta de 30 minutos',
     noObligation: 'Sem obrigação',
     seniorConsultant: 'Consultor sênior',
+    scheduleStrategicSession: 'Agendar Sessão Estratégica Gratuita',
+    limitedSpotsWeek: 'Apenas 5 vagas esta semana',
+    whatYouGet: 'O que você recebe:',
+    strategicSessionBenefits: {
+      expertTime: '30 minutos com especialista sênior em IA',
+      customPlan: 'Plano de ação personalizado para seu departamento',
+      exclusiveTools: 'Templates e ferramentas exclusivas',
+      noCommitment: 'Sem compromisso, 100% focado em resultados'
+    },
+    implementableIdeasGuarantee: 'Garantia de 3 ideias implementáveis + plano para resultados em semanas',
     backToHome: '← Voltar ao Início',
     assessmentRevealsPath: 'Esta avaliação revela seu caminho para a liderança em IA. Vamos criar um <strong>plano de implementação personalizado</strong> para avançar sua carreira enquanto transforma seu departamento na {company}.',
     loadingEllipsis: 'Carregando...',
@@ -206,12 +223,17 @@ export const pt: Translations = {
     readyToBegin: 'Pronto para Começar',
     moderateComplexity: 'Complexidade Moderada',
     longTermVision: 'Visão de Longo Prazo',
-    // Missing translations
-    departmentRoadmap: 'Plano do Departamento',
-    careerPositioning: 'Posicionamento de Carreira',
-    scheduleConsultation: 'Agendar Consulta de Campeão de IA',
-    keyChallenges: 'Principais Desafios',
-    aiAnalysisReport: 'Relatório de Análise de IA'
+    // Report regeneration
+    reportGeneration: 'Geração de Relatório',
+    reportWillBeGenerated: 'Seu relatório personalizado de estratégia de IA será gerado e enviado por e-mail nos próximos minutos.',
+    checkEmail: 'Verifique seu e-mail em',
+    regenerating: 'Regenerando...',
+    generateReportNow: 'Gerar Relatório Agora',
+    regenerationError: 'Erro na Regeneração',
+    regenerationHelp: 'Se houver problemas, clique no botão acima para gerar um novo relatório.',
+    reportIssueDetected: 'Problema Detectado no Relatório',
+    reportIssueDescription: 'Seu relatório pode não estar sendo exibido corretamente. Clique abaixo para regenerar um relatório completo.',
+    fixReportNow: 'Corrigir Relatório Agora'
   },
   
   questions: {
@@ -446,6 +468,11 @@ export const pt: Translations = {
         "Grande Empresa - 1000-5000 funcionários, hierarquia complexa",
         "Fortune 500/Global - 5000+ funcionários, múltiplas divisões e localizações"
       ]
+    },
+    'operational-challenges': {
+      question: "Descreva seus maiores desafios operacionais ou processos demorados (Opcional)",
+      subtitle: "Compartilhe detalhes específicos sobre processos, pontos problemáticos ou ineficiências que afetam seu trabalho diário. Isso nos ajuda a fornecer recomendações mais personalizadas.",
+      placeholder: "Exemplo: Criar relatórios semanais leva 6 horas porque preciso extrair dados de 3 sistemas manualmente, coordenar com 2 departamentos para atualizações e formatar tudo no PowerPoint. O processo de aprovação trava quando os gerentes estão viajando..."
     },
     'current-tools': {
       question: "Quais ferramentas de negócio sua equipe usa com mais frequência?",

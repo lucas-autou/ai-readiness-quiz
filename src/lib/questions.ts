@@ -2,7 +2,7 @@ export interface QuizQuestion {
   id: string;
   question: string;
   subtitle?: string;
-  type: 'multiple-choice' | 'scale' | 'card-select' | 'slider' | 'ranking' | 'multi-select' | 'multi-card-select';
+  type: 'multiple-choice' | 'scale' | 'card-select' | 'slider' | 'ranking' | 'multi-select' | 'multi-card-select' | 'text-area';
   options?: string[];
   cards?: { title: string; description: string; value: string; icon?: string }[];
   scaleMin?: number;
@@ -12,6 +12,9 @@ export interface QuizQuestion {
   personalizable?: boolean;
   multiSelect?: boolean; // Enable multiple selections
   maxSelections?: number; // Optional limit on selections
+  placeholder?: string; // For text-area type
+  maxLength?: number; // Character limit for text-area
+  optional?: boolean; // Mark question as optional
 }
 
 export const quizQuestions: QuizQuestion[] = [
@@ -356,6 +359,17 @@ export const quizQuestions: QuizQuestion[] = [
     weight: 2
   },
   {
+    id: 'operational-challenges',
+    question: "Describe your biggest operational challenges or time-consuming processes (Optional)",
+    subtitle: "Share specific details about processes, pain points, or inefficiencies that affect your daily work. This helps us provide more personalized recommendations.",
+    type: 'text-area',
+    placeholder: "Example: Creating weekly reports takes 6 hours because I need to pull data from 3 systems manually, coordinate with 2 departments for updates, and format everything in PowerPoint. The approval process gets stuck when managers are traveling...",
+    maxLength: 600,
+    optional: true,
+    weight: 2,
+    personalizable: true
+  },
+  {
     id: 'current-tools',
     question: "Which business tools does your team use most frequently?",
     subtitle: "We'll recommend AI solutions that integrate with your existing stack",
@@ -512,6 +526,26 @@ export function calculateScore(responses: Record<string, string | string[]>): nu
               });
               points = response.length > 0 ? totalCardPoints / response.length : 1;
               maxPoints = question.cards.length;
+            }
+            break;
+
+          case 'text-area':
+            // For text-area, assign points based on text length/quality
+            if (typeof response === 'string') {
+              const textLength = response.trim().length;
+              if (textLength === 0) {
+                points = 1; // No text provided
+              } else if (textLength < 50) {
+                points = 2; // Brief description
+              } else if (textLength < 200) {
+                points = 3; // Good detail
+              } else {
+                points = 4; // Comprehensive description
+              }
+              maxPoints = 4;
+            } else {
+              points = 1;
+              maxPoints = 4;
             }
             break;
             

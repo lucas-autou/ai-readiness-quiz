@@ -2,9 +2,12 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle, Download, Mail, ArrowRight, TrendingUp, Target, Lightbulb, Clock } from 'lucide-react';
+import { CheckCircle, Share2, Mail, ArrowRight, TrendingUp, Target, Lightbulb, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation, LanguageSelector } from '@/lib/i18n';
+import ClientLogos from '@/components/ClientLogos';
+import ShareReportModal from '@/components/ShareReportModal';
+import { generateFallbackReport } from '@/lib/fallbackReportGenerator';
 
 interface ReportData {
   executive_summary: string;
@@ -50,6 +53,7 @@ function ResultsPageContent() {
   const [result, setResult] = useState<QuizResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -78,80 +82,199 @@ function ResultsPageContent() {
 
 
   const getScoreLevel = (score: number) => {
-    if (score >= 80) return { level: 'AI Champion Ready', color: 'text-green-400', bgColor: 'bg-green-500/20' };
-    if (score >= 60) return { level: 'AI Explorer', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' };
-    if (score >= 40) return { level: 'AI Curious', color: 'text-orange-400', bgColor: 'bg-orange-500/20' };
-    return { level: 'AI Beginner', color: 'text-red-400', bgColor: 'bg-red-500/20' };
+    if (score >= 80) return { level: t('results.aiChampion'), color: 'text-green-400', bgColor: 'bg-green-500/20' };
+    if (score >= 60) return { level: t('results.aiExplorer'), color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' };
+    if (score >= 40) return { level: t('results.aiCurious'), color: 'text-orange-400', bgColor: 'bg-orange-500/20' };
+    return { level: t('results.aiBeginner'), color: 'text-red-400', bgColor: 'bg-red-500/20' };
   };
 
   const parseJSONReport = (report: string): ReportData | null => {
+    console.log('🔍 Starting JSON parsing process for report, length:', report?.length || 0);
+    
     try {
-      const parsed = JSON.parse(report);
-      console.log('Parsed report structure:', Object.keys(parsed));
-      console.log('Full parsed report:', parsed);
+      // Check if this is a markdown fallback message (not JSON)
+      if (report.trim().startsWith('#') || report.includes('Premium AI Report Not Available')) {
+        console.log('📝 Report is markdown fallback, not JSON - using smart fallback');
+        return generateSmartFallback();
+      }
       
-      // More flexible validation - just check if it's an object with some expected fields
-      if (parsed && typeof parsed === 'object') {
-        // If it has the new structure, return it
-        if (parsed.executive_summary && parsed.department_challenges && 
-            parsed.career_impact && parsed.quick_wins && parsed.implementation_roadmap) {
-          return parsed as ReportData;
-        }
-        
-        // If it has some content, try to create a structure from any available data
-        if (Object.keys(parsed).length > 0) {
-          console.log('Creating fallback structure from available data');
+      // Multiple attempts to parse and clean the JSON
+      const cleaningAttempts = [
+        // Attempt 1: Basic cleaning
+        () => report.trim().replace(/[\u0000-\u001F\u007F-\u009F]/g, ''),
+        // Attempt 2: Extract JSON boundaries
+        () => {
+          const firstBrace = report.indexOf('{');
+          const lastBrace = report.lastIndexOf('}');
+          if (firstBrace >= 0 && lastBrace > firstBrace) {
+            return report.substring(firstBrace, lastBrace + 1);
+          }
+          return report;
+        },
+        // Attempt 3: Remove markdown formatting
+        () => report.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim(),
+        // Attempt 4: Fix common JSON issues
+        () => report.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']').trim()
+      ];
+      
+      for (let i = 0; i < cleaningAttempts.length; i++) {
+        try {
+          const cleanedReport = cleaningAttempts[i]();
+          console.log(`🧹 Cleaning attempt ${i + 1}, length:`, cleanedReport.length);
+          console.log(`📝 First 200 chars:`, cleanedReport.substring(0, 200));
           
-          // Try to extract content intelligently
-          const allValues = Object.values(parsed).filter(v => typeof v === 'string' && v.length > 10);
-          const firstContent = allValues[0] || 'Relatório personalizado gerado com base nas suas respostas.';
+          const parsed = JSON.parse(cleanedReport);
+          console.log('✅ Successfully parsed JSON on attempt', i + 1);
+          console.log('📊 Parsed report structure:', Object.keys(parsed));
           
-          return {
-            executive_summary: parsed.executive_summary || parsed.summary || parsed.overview || firstContent,
-            department_challenges: Array.isArray(parsed.department_challenges) ? parsed.department_challenges 
-              : Array.isArray(parsed.challenges) ? parsed.challenges 
-              : parsed.challenges ? [parsed.challenges]
-              : ['Análise de desafios específicos identificados para o seu departamento'],
-            career_impact: parsed.career_impact || {
-              personal_productivity: parsed.productivity || 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
-              team_performance: parsed.team || 'Melhoria no desempenho da equipe com automação inteligente',
-              leadership_recognition: parsed.leadership || 'Reconhecimento como líder inovador e visionário em IA',
-              professional_growth: parsed.growth || 'Crescimento profissional acelerado através de competências em IA'
-            },
-            quick_wins: parsed.quick_wins || {
-              month_1_actions: parsed.actions || [
-                { action: 'Identificar e testar ferramentas de IA relevantes para o departamento', impact: 'Base sólida para implementação e resultados rápidos' }
-              ],
-              quarter_1_goals: parsed.goals || [
-                { goal: 'Implementar primeira solução de IA piloto', outcome: 'Resultados mensuráveis e aprovação para expansão' }
-              ]
-            },
-            implementation_roadmap: Array.isArray(parsed.implementation_roadmap) ? parsed.implementation_roadmap
-              : Array.isArray(parsed.roadmap) ? parsed.roadmap
-              : [
-                {
-                  phase: 'Fase 1: Avaliação e Planejamento',
-                  duration: '4 semanas',
-                  description: 'Análise detalhada das necessidades do departamento e preparação estratégica',
-                  career_benefit: 'Posicionamento como líder visionário e estrategista em IA'
-                },
-                {
-                  phase: 'Fase 2: Implementação Piloto',
-                  duration: '6 semanas',
-                  description: 'Desenvolvimento e teste de soluções de IA específicas',
-                  career_benefit: 'Demonstração de resultados tangíveis e liderança prática'
-                }
-              ]
-          } as ReportData;
+          // Validate and return if it has the correct structure
+          const validatedReport = validateAndFixReportStructure(parsed);
+          if (validatedReport) {
+            console.log('✅ Report structure validated successfully');
+            return validatedReport;
+          }
+        } catch (parseError) {
+          console.log(`❌ Parse attempt ${i + 1} failed:`, parseError);
+          continue;
         }
       }
       
-      return null;
+      // All parsing attempts failed - generate intelligent fallback
+      console.log('🛡️ All JSON parsing attempts failed, generating intelligent fallback');
+      return generateSmartFallback();
+      
     } catch (error) {
-      console.error('Failed to parse JSON report:', error);
-      console.log('Raw report content:', report?.substring(0, 200) + '...');
+      console.error('❌ Critical error in parseJSONReport:', error);
+      console.log('📝 Raw report content (first 500 chars):', report?.substring(0, 500));
+      
+      // Last resort: generate fallback
+      return generateSmartFallback();
+    }
+  };
+  
+  const validateAndFixReportStructure = (parsed: unknown): ReportData | null => {
+    if (!parsed || typeof parsed !== 'object') {
+      console.log('❌ Invalid parsed object');
       return null;
     }
+    
+    console.log('🔍 Validating report structure...');
+    console.log('🔍 Executive summary present:', !!parsed.executive_summary);
+    console.log('🔍 Department challenges present:', !!parsed.department_challenges);
+    console.log('🔍 Career impact present:', !!parsed.career_impact);
+    console.log('🔍 Quick wins present:', !!parsed.quick_wins);
+    console.log('🔍 Implementation roadmap present:', !!parsed.implementation_roadmap);
+    
+    // If it has the complete structure, return it
+    if (parsed.executive_summary && parsed.department_challenges && 
+        parsed.career_impact && parsed.quick_wins && parsed.implementation_roadmap) {
+      return parsed as ReportData;
+    }
+    
+    // Try to fix incomplete structure with available data
+    if (Object.keys(parsed).length > 0) {
+      console.log('🔧 Attempting to fix incomplete structure with available data');
+      
+      const allValues = Object.values(parsed).filter(v => typeof v === 'string' && v.length > 10);
+      const firstContent = allValues[0] || 'Relatório personalizado gerado com base nas suas respostas.';
+      
+      return {
+        executive_summary: parsed.executive_summary || parsed.summary || parsed.overview || firstContent,
+        department_challenges: Array.isArray(parsed.department_challenges) ? parsed.department_challenges 
+          : Array.isArray(parsed.challenges) ? parsed.challenges 
+          : parsed.challenges ? [parsed.challenges]
+          : ['Análise de desafios específicos identificados para o seu departamento'],
+        career_impact: parsed.career_impact || {
+          personal_productivity: parsed.productivity || 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
+          team_performance: parsed.team || 'Melhoria no desempenho da equipe com automação inteligente',
+          leadership_recognition: parsed.leadership || 'Reconhecimento como líder inovador e visionário em IA',
+          professional_growth: parsed.growth || 'Crescimento profissional acelerado através de competências em IA'
+        },
+        quick_wins: parsed.quick_wins || {
+          month_1_actions: parsed.actions || [
+            { action: 'Identificar e testar ferramentas de IA relevantes para o departamento', impact: 'Base sólida para implementação e resultados rápidos' }
+          ],
+          quarter_1_goals: parsed.goals || [
+            { goal: 'Implementar primeira solução de IA piloto', outcome: 'Resultados mensuráveis e aprovação para expansão' }
+          ]
+        },
+        implementation_roadmap: Array.isArray(parsed.implementation_roadmap) ? parsed.implementation_roadmap
+          : Array.isArray(parsed.roadmap) ? parsed.roadmap
+          : [
+            {
+              phase: 'Fase 1: Avaliação e Planejamento',
+              duration: '4 semanas',
+              description: 'Análise detalhada das necessidades do departamento e preparação estratégica',
+              career_benefit: 'Posicionamento como líder visionário e estrategista em IA'
+            },
+            {
+              phase: 'Fase 2: Implementação Piloto',
+              duration: '6 semanas',
+              description: 'Desenvolvimento e teste de soluções de IA específicas',
+              career_benefit: 'Demonstração de resultados tangíveis e liderança prática'
+            }
+          ]
+      } as ReportData;
+    }
+    
+    return null;
+  };
+  
+  const generateSmartFallback = (): ReportData => {
+    console.log('🛡️ Generating smart fallback report with user data');
+    
+    // Use the fallback generator with user data if available
+    if (result) {
+      const userData = {
+        company: result.company,
+        jobTitle: result.jobTitle,
+        score: result.score,
+        responses: result.responses || {},
+        language: 'pt' // Assumindo PT para o contexto brasileiro
+      };
+      
+      try {
+        return generateFallbackReport(userData);
+      } catch (error) {
+        console.error('❌ Error generating smart fallback:', error);
+      }
+    }
+    
+    // Last resort: minimal fallback
+    return {
+      executive_summary: result ? 
+        `Relatório personalizado para ${result.jobTitle} na ${result.company}. Score: ${result.score}/100. Oportunidades de IA identificadas para seu departamento com base na análise detalhada das suas respostas.` :
+        'Relatório de análise de IA personalizado baseado nas suas respostas.',
+      department_challenges: [
+        'Processos manuais consomem tempo excessivo da equipe',
+        'Falta de automação resulta em erros e retrabalho',
+        'Análise de dados é feita de forma reativa',
+        'Pressão por resultados mais rápidos sem ferramentas adequadas',
+        'Necessidade de demonstrar inovação e liderança tecnológica'
+      ],
+      career_impact: {
+        personal_productivity: 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
+        team_performance: 'Melhoria no desempenho da equipe com automação inteligente',
+        leadership_recognition: 'Reconhecimento como líder inovador e visionário em IA',
+        professional_growth: 'Crescimento profissional acelerado através de competências em IA'
+      },
+      quick_wins: {
+        month_1_actions: [
+          { action: 'Implementar ferramentas básicas de IA para automação', impact: 'Resultados imediatos em produtividade' }
+        ],
+        quarter_1_goals: [
+          { goal: 'Estabelecer programa piloto de IA', outcome: 'Base sólida para expansão futura' }
+        ]
+      },
+      implementation_roadmap: [
+        {
+          phase: 'Fase 1: Avaliação e Planejamento',
+          duration: '4 semanas',
+          description: 'Análise detalhada das necessidades e preparação estratégica',
+          career_benefit: 'Posicionamento como líder em inovação'
+        }
+      ]
+    };
   };
 
   if (loading) {
@@ -193,6 +316,7 @@ function ResultsPageContent() {
     console.log('Report exists but parsing failed. Raw report length:', result.aiReport.length);
     console.log('First 300 chars:', result.aiReport.substring(0, 300));
   }
+  
 
   return (
     <div className="aura-background">
@@ -854,17 +978,24 @@ function ResultsPageContent() {
         ) : (
           <div className="max-w-5xl mx-auto">
             <div className="aura-card p-10 text-center">
-              <h3 className="aura-heading text-3xl mb-6">Report Generation</h3>
+              <h3 className="aura-heading text-3xl mb-6">{t('results.reportGeneration')}</h3>
               <p className="aura-text-secondary text-lg mb-8">
-                Your personalized AI strategy report will be generated and emailed to you within the next few minutes.
+                {t('results.reportWillBeGenerated')}
               </p>
+              
+              
               <div className="flex items-center justify-center gap-3 aura-text-primary text-lg">
                 <Mail className="w-6 h-6 aura-icon" />
-                <span>Check your email at: {result.email}</span>
+                <span>{t('results.checkEmail')}: {result.email}</span>
               </div>
             </div>
           </div>
         )}
+
+        {/* Client Logos - Trust Section */}
+        <div className="mt-20">
+          <ClientLogos />
+        </div>
 
         {/* Premium CTA Section */}
         <div className="max-w-6xl mx-auto mt-24">
@@ -920,37 +1051,66 @@ function ResultsPageContent() {
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
+              {/* Limited Spots Badge */}
+              <div className="mb-8">
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full" 
+                     style={{ backgroundColor: 'rgba(236,78,34,0.1)', border: '2px solid rgba(236,78,34,0.3)' }}>
+                  <div className="w-3 h-3 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
+                  <span className="aura-text-primary font-bold">{t('results.limitedSpotsWeek')}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-8 max-w-3xl mx-auto mb-12">
+                
+                {/* Main CTA Button */}
                 <a 
                   href={`mailto:contact@yourcompany.com?subject=Executive AI Strategy Consultation - ${encodeURIComponent(result.company)}&body=${encodeURIComponent('Hi, I just completed the AI readiness assessment and scored ' + result.score + '/100. I\'d like to schedule a 30-minute executive consultation to discuss our AI transformation strategy.')}`}
-                  className="aura-button aura-button-primary text-lg px-12 py-4 aura-hover-lift"
+                  className="aura-button aura-button-primary text-xl px-16 py-5 aura-hover-lift group"
                 >
-                  <Mail className="w-6 h-6" />
-                  <span>{t('results.scheduleConsultation')}</span>
+                  <Mail className="w-7 h-7" />
+                  <span>{t('results.scheduleStrategicSession')}</span>
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
                 </a>
                 
+                {/* What You Get Section */}
+                <div className="aura-glass rounded-2xl p-8">
+                  <h4 className="aura-heading text-xl mb-6">{t('results.whatYouGet')}</h4>
+                  <div className="space-y-4 text-left">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.expertTime')}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.customPlan')}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.exclusiveTools')}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.noCommitment')}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Guarantee */}
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full aura-glass">
+                    <span className="text-2xl">✅</span>
+                    <span className="aura-text-primary font-semibold">{t('results.implementableIdeasGuarantee')}</span>
+                  </div>
+                </div>
+                
+                {/* Secondary Action - Share Report */}
                 <button 
-                  onClick={() => window.print()}
-                  className="aura-button aura-button-secondary text-lg px-12 py-4 aura-hover-lift"
+                  onClick={() => setShareModalOpen(true)}
+                  className="aura-button aura-button-secondary text-lg px-8 py-3"
                 >
-                  <Download className="w-6 h-6" />
-                  {t('results.downloadFullReportPdf')}
+                  <Share2 className="w-5 h-5" />
+                  Compartilhar Relatório
                 </button>
-              </div>
-              
-              <div className="flex items-center justify-center flex-wrap gap-8 aura-text-secondary text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span>{t('results.thirtyMinuteConsultation')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span>{t('results.noObligation')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span>{t('results.seniorConsultant')}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -966,6 +1126,15 @@ function ResultsPageContent() {
           </Link>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {result && (
+        <ShareReportModal 
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          result={result}
+        />
+      )}
     </div>
   );
 }

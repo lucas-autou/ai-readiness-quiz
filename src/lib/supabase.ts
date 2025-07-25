@@ -244,3 +244,64 @@ export async function getQuizResponseById(id: string) {
 
   return data;
 }
+
+export async function getQuizResponseBySlug(slug: string) {
+  // If Supabase is not configured, return null
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, cannot fetch quiz response by slug');
+    return null;
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('quiz_responses')
+      .select('*')
+      .eq('share_slug', slug)
+      .single();
+
+    if (error) {
+      // If it's a "not found" error, return null instead of throwing
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.log('⚠️ share_slug column might not exist yet, returning null');
+    return null;
+  }
+}
+
+export async function updateQuizResponseShareSlug(id: string, shareSlug: string) {
+  // If Supabase is not configured, return mock success
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, mock updating share slug');
+    return { id, share_slug: shareSlug };
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('quiz_responses')
+      .update({ share_slug: shareSlug })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.message.includes('share_slug')) {
+        console.log('⚠️ share_slug column not found, needs database migration');
+        // Column doesn't exist yet - we'll need to add it to the database
+        return null;
+      }
+      throw error;
+    }
+
+    console.log('✅ Share slug updated for response ID:', id);
+    return data;
+  } catch (error) {
+    console.error('❌ Error updating share slug:', error);
+    return null;
+  }
+}

@@ -3,6 +3,8 @@
 import { ArrowRight, Zap, Target, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation, LanguageSelector } from '@/lib/i18n';
+import ClientLogos from '@/components/ClientLogos';
+import TrustBadges from '@/components/TrustBadges';
 
 export default function HomePage() {
   const { } = useTranslation();
@@ -138,6 +140,12 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Client Logos Section */}
+        <ClientLogos />
+        
+        {/* Trust Badges */}
+        <TrustBadges />
 
         {/* Final CTA - Mais Orgânico e Proeminente */}
         <section className="text-center mb-16">

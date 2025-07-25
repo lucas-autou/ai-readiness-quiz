@@ -55,6 +55,10 @@ export interface Translations {
       description: string;
       button: string;
     };
+    trustedBy: string;
+    leadersTransformed: string;
+    satisfactionRate: string;
+    industriesServed: string;
   };
   
   // Quiz
@@ -198,6 +202,23 @@ export interface Translations {
     thirtyMinuteConsultation: string;
     noObligation: string;
     seniorConsultant: string;
+    weeks: string;
+    timeToFirstResults: string;
+    whenYouWillSeeResults: string;
+    firstMeasurableResults: string;
+    keyChallenges: string;
+    departmentRoadmap: string;
+    careerPositioning: string;
+    scheduleStrategicSession: string;
+    limitedSpotsWeek: string;
+    whatYouGet: string;
+    strategicSessionBenefits: {
+      expertTime: string;
+      customPlan: string;
+      exclusiveTools: string;
+      noCommitment: string;
+    };
+    implementableIdeasGuarantee: string;
     backToHome: string;
     assessmentRevealsPath: string;
     loadingEllipsis: string;
@@ -214,6 +235,7 @@ export interface Translations {
     [key: string]: {
       question: string;
       subtitle?: string;
+      placeholder?: string;
       options?: string[];
       cards?: {
         title: string;

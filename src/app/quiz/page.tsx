@@ -138,6 +138,12 @@ export default function QuizPage() {
   const canProceed = () => {
     if (isQuizStep && currentQuestion) {
       const response = responses[currentQuestion.id];
+      
+      // Optional questions can always be skipped
+      if (currentQuestion.optional) {
+        return true;
+      }
+      
       if (currentQuestion.multiSelect) {
         return Array.isArray(response) && response.length > 0;
       }
@@ -238,6 +244,22 @@ export default function QuizPage() {
                     </div>
                   </div>
 
+                  {/* Social Proof Badge */}
+                  <div className="mb-6">
+                    <div 
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                      style={{ 
+                        background: 'rgba(255,168,80,0.15)', 
+                        border: '1px solid rgba(255,168,80,0.3)' 
+                      }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-sm font-medium aura-text-primary">
+                        Já ajudamos 500+ líderes empresariais
+                      </span>
+                    </div>
+                  </div>
+
                   <button onClick={() => setCurrentStep(1)} className="aura-button aura-button-primary aura-button-magnetic aura-liquid-hover text-xl px-12 py-5 group relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <span className="relative z-10 flex items-center gap-3">
@@ -246,8 +268,15 @@ export default function QuizPage() {
                     </span>
                   </button>
 
-                  <p className="text-sm mt-6 aura-text-secondary">
-                    {t('common.free')} • No signup required • Get results instantly
+                  {/* Urgency Element */}
+                  <div className="mt-4 mb-2">
+                    <span className="text-sm aura-text-cinnabar font-semibold">
+                      🔥 Relatório gratuito por tempo limitado
+                    </span>
+                  </div>
+
+                  <p className="text-sm aura-text-secondary">
+                    ✓ Gratuito • ✓ 5 minutos • ✓ Relatório na hora no seu navegador
                   </p>
                 </div>
               </div>
@@ -268,9 +297,21 @@ export default function QuizPage() {
                 <h1 className="text-4xl font-bold mb-4 leading-tight aura-heading">
                   {t('quiz.emailCapture.title')}
                 </h1>
-                <p className="text-xl aura-body">
+                <p className="text-xl mb-4 aura-body">
                   {t('quiz.emailCapture.subtitle')}
                 </p>
+                <div 
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                  style={{ 
+                    background: 'rgba(236,78,34,0.15)', 
+                    border: '1px solid rgba(236,78,34,0.3)' 
+                  }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="text-sm font-semibold aura-text-cinnabar">
+                    🤖 Seu relatório será gerado agora em 15-30 segundos
+                  </span>
+                </div>
               </div>
 
               <form onSubmit={handleEmailSubmit} className="space-y-6 relative z-10">
@@ -321,6 +362,30 @@ export default function QuizPage() {
                   </div>
                 </div>
 
+                {/* Privacy Guarantees */}
+                <div className="mb-6">
+                  <div 
+                    className="flex items-center justify-center gap-6 p-4 rounded-2xl"
+                    style={{ 
+                      background: 'rgba(136,80,226,0.08)', 
+                      border: '1px solid rgba(136,80,226,0.2)' 
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium aura-text-primary">Sem spam</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium aura-text-primary">Dados seguros</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium aura-text-primary">Cancelar a qualquer momento</span>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={!canProceed() || isSubmitting}
@@ -335,12 +400,41 @@ export default function QuizPage() {
                       : '0 8px 24px rgba(136,80,226,0.25)'
                   }}
                 >
-                  {isSubmitting ? t('quiz.emailCapture.buildingPlaybook') : t('quiz.emailCapture.submitButton')}
-                  <ArrowRight className="w-5 h-5" />
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      🤖 Nossos agentes de IA estão preparando seu relatório...
+                    </>
+                  ) : (
+                    <>
+                      {t('quiz.emailCapture.submitButton')}
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
                 </button>
 
+                {isSubmitting && (
+                  <div className="text-center mb-4">
+                    <div 
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                      style={{ 
+                        background: 'rgba(255,168,80,0.15)', 
+                        border: '1px solid rgba(255,168,80,0.3)' 
+                      }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+                      <span className="text-sm font-medium aura-text-primary">
+                        ⏱️ Aguarde 15-30 segundos - não feche esta página
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-center text-sm aura-text-secondary">
-                  {t('quiz.emailCapture.securityNote')}
+                  {isSubmitting ? 
+                    "Seus dados estão sendo processados com segurança por nossa IA" :
+                    t('quiz.emailCapture.securityNote')
+                  }
                 </p>
               </form>
 
@@ -522,6 +616,45 @@ export default function QuizPage() {
                       })}
                     </div>
                   </>
+                )}
+
+                {/* Text Area Interface */}
+                {currentQuestion.type === 'text-area' && (
+                  <div className="space-y-6">
+                    <div 
+                      className="rounded-2xl p-8 border relative"
+                      style={{
+                        background: `linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.90) 100%)`,
+                        border: '2px solid rgba(255,168,80,0.3)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: `0 12px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)`
+                      }}
+                    >
+                      <textarea
+                        value={responses[currentQuestion.id] as string || ''}
+                        onChange={(e) => handleQuestionResponse(e.target.value)}
+                        placeholder={t(`questions.${currentQuestion.id}.placeholder`) || currentQuestion.placeholder}
+                        maxLength={currentQuestion.maxLength}
+                        className="w-full h-40 p-4 border-0 bg-transparent resize-none focus:outline-none aura-body placeholder:aura-text-secondary"
+                        style={{
+                          fontFamily: 'inherit',
+                          fontSize: '16px',
+                          lineHeight: '1.6'
+                        }}
+                      />
+                      
+                      {currentQuestion.maxLength && (
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                          <span className="text-sm aura-text-secondary">
+                            {currentQuestion.optional ? 'Campo opcional - pode pular se preferir' : ''}
+                          </span>
+                          <span className="text-sm aura-text-secondary">
+                            {(responses[currentQuestion.id] as string || '').length} / {currentQuestion.maxLength}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {/* Slider Interface */}
