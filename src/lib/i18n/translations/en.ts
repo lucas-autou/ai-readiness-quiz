@@ -222,7 +222,19 @@ export const en: Translations = {
     start: 'Start',
     readyToBegin: 'Ready to Begin',
     moderateComplexity: 'Moderate Complexity',
-    longTermVision: 'Long-term Vision'
+    longTermVision: 'Long-term Vision',
+    // Report regeneration
+    reportGeneration: 'Report Generation',
+    reportWillBeGenerated: 'Your personalized AI strategy report will be generated and sent by email in the next few minutes.',
+    checkEmail: 'Check your email in',
+    regenerating: 'Regenerating...',
+    generateReportNow: 'Generate Report Now',
+    regenerationError: 'Regeneration Error',
+    regenerationHelp: 'If there are problems, click the button above to generate a new report.',
+    reportIssueDetected: 'Report Issue Detected',
+    reportIssueDescription: 'Your report may not be displaying correctly. Click below to regenerate a complete report.',
+    fixReportNow: 'Fix Report Now',
+    shareYourReport: 'Share Your Report'
   },
   
   questions: {

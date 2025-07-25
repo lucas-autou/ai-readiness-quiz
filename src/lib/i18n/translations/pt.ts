@@ -233,7 +233,8 @@ export const pt: Translations = {
     regenerationHelp: 'Se houver problemas, clique no botão acima para gerar um novo relatório.',
     reportIssueDetected: 'Problema Detectado no Relatório',
     reportIssueDescription: 'Seu relatório pode não estar sendo exibido corretamente. Clique abaixo para regenerar um relatório completo.',
-    fixReportNow: 'Corrigir Relatório Agora'
+    fixReportNow: 'Corrigir Relatório Agora',
+    shareYourReport: 'Compartilhar Seu Relatório'
   },
   
   questions: {

@@ -3,11 +3,11 @@ import { getQuizResponseBySlug } from '@/lib/supabase';
 import SlugResultsPageClient from './client-page';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const slug = params.slug;
+  const { slug } = await params;
   
   try {
     // Fetch the quiz result to generate dynamic metadata
@@ -76,6 +76,7 @@ Este relatório personalizado contém estratégias específicas, desafios identi
   }
 }
 
-export default function SlugResultsPage({ params }: Props) {
-  return <SlugResultsPageClient />;
+export default async function SlugResultsPage({ params }: Props) {
+  const { slug } = await params;
+  return <SlugResultsPageClient slug={slug} />;
 }

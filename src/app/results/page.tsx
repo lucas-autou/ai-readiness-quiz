@@ -44,6 +44,7 @@ interface QuizResult {
   score: number;
   aiReport: string | null;
   createdAt: string;
+  responses?: Record<string, string | string[]>;
 }
 
 function ResultsPageContent() {
@@ -159,16 +160,17 @@ function ResultsPageContent() {
     }
     
     console.log('🔍 Validating report structure...');
-    console.log('🔍 Executive summary present:', !!parsed.executive_summary);
-    console.log('🔍 Department challenges present:', !!parsed.department_challenges);
-    console.log('🔍 Career impact present:', !!parsed.career_impact);
-    console.log('🔍 Quick wins present:', !!parsed.quick_wins);
-    console.log('🔍 Implementation roadmap present:', !!parsed.implementation_roadmap);
+    const reportData = parsed as ReportData;
+    console.log('🔍 Executive summary present:', !!reportData.executive_summary);
+    console.log('🔍 Department challenges present:', !!reportData.department_challenges);
+    console.log('🔍 Career impact present:', !!reportData.career_impact);
+    console.log('🔍 Quick wins present:', !!reportData.quick_wins);
+    console.log('🔍 Implementation roadmap present:', !!reportData.implementation_roadmap);
     
     // If it has the complete structure, return it
-    if (parsed.executive_summary && parsed.department_challenges && 
-        parsed.career_impact && parsed.quick_wins && parsed.implementation_roadmap) {
-      return parsed as ReportData;
+    if (reportData.executive_summary && reportData.department_challenges && 
+        reportData.career_impact && reportData.quick_wins && reportData.implementation_roadmap) {
+      return reportData;
     }
     
     // Try to fix incomplete structure with available data
@@ -178,28 +180,31 @@ function ResultsPageContent() {
       const allValues = Object.values(parsed).filter(v => typeof v === 'string' && v.length > 10);
       const firstContent = allValues[0] || 'Relatório personalizado gerado com base nas suas respostas.';
       
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const parsedData = parsed as any;
       return {
-        executive_summary: parsed.executive_summary || parsed.summary || parsed.overview || firstContent,
-        department_challenges: Array.isArray(parsed.department_challenges) ? parsed.department_challenges 
-          : Array.isArray(parsed.challenges) ? parsed.challenges 
-          : parsed.challenges ? [parsed.challenges]
+        executive_summary: parsedData.executive_summary || parsedData.summary || parsedData.overview || firstContent,
+        department_challenges: Array.isArray(parsedData.department_challenges) ? parsedData.department_challenges 
+          : Array.isArray(parsedData.challenges) ? parsedData.challenges 
+          : parsedData.challenges ? [parsedData.challenges]
           : ['Análise de desafios específicos identificados para o seu departamento'],
-        career_impact: parsed.career_impact || {
-          personal_productivity: parsed.productivity || 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
-          team_performance: parsed.team || 'Melhoria no desempenho da equipe com automação inteligente',
-          leadership_recognition: parsed.leadership || 'Reconhecimento como líder inovador e visionário em IA',
-          professional_growth: parsed.growth || 'Crescimento profissional acelerado através de competências em IA'
+        career_impact: parsedData.career_impact || {
+          personal_productivity: parsedData.productivity || 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
+          team_performance: parsedData.team || 'Melhoria no desempenho da equipe com automação inteligente',
+          leadership_recognition: parsedData.leadership || 'Reconhecimento como líder inovador e visionário em IA',
+          professional_growth: parsedData.growth || 'Crescimento profissional acelerado através de competências em IA'
         },
-        quick_wins: parsed.quick_wins || {
-          month_1_actions: parsed.actions || [
+        quick_wins: parsedData.quick_wins || {
+          month_1_actions: parsedData.actions || [
             { action: 'Identificar e testar ferramentas de IA relevantes para o departamento', impact: 'Base sólida para implementação e resultados rápidos' }
           ],
-          quarter_1_goals: parsed.goals || [
+          quarter_1_goals: parsedData.goals || [
             { goal: 'Implementar primeira solução de IA piloto', outcome: 'Resultados mensuráveis e aprovação para expansão' }
           ]
         },
-        implementation_roadmap: Array.isArray(parsed.implementation_roadmap) ? parsed.implementation_roadmap
-          : Array.isArray(parsed.roadmap) ? parsed.roadmap
+        implementation_roadmap: Array.isArray(parsedData.implementation_roadmap) ? parsedData.implementation_roadmap
+          : Array.isArray(parsedData.roadmap) ? parsedData.roadmap
+      /* eslint-enable @typescript-eslint/no-explicit-any */
           : [
             {
               phase: 'Fase 1: Avaliação e Planejamento',

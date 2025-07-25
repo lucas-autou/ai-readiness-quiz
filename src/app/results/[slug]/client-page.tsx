@@ -2,37 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CheckCircle, Share2, Mail, ArrowRight, TrendingUp, Target, Lightbulb, Clock, Copy, MessageCircle } from 'lucide-react';
+import { CheckCircle, Share2, Mail, ArrowRight, TrendingUp, Copy, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation, LanguageSelector } from '@/lib/i18n';
 import ClientLogos from '@/components/ClientLogos';
 
-interface ReportData {
-  executive_summary: string;
-  department_challenges: string[];
-  career_impact: {
-    personal_productivity: string;
-    team_performance: string;
-    leadership_recognition: string;
-    professional_growth: string;
-  };
-  quick_wins: {
-    month_1_actions: Array<{
-      action: string;
-      impact: string;
-    }>;
-    quarter_1_goals: Array<{
-      goal: string;
-      outcome: string;
-    }>;
-  };
-  implementation_roadmap: Array<{
-    phase: string;
-    duration: string;
-    description: string;
-    career_benefit: string;
-  }>;
-}
 
 interface QuizResult {
   id: number;
@@ -193,11 +167,11 @@ Ver relatório: ${shareUrl}`);
   );
 }
 
-function SlugResultsPageContent() {
+function SlugResultsPageContent({ slug: propSlug }: { slug?: string }) {
   const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
-  const slug = params?.slug as string;
+  const slug = propSlug || (params?.slug as string);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -491,7 +465,7 @@ function SlugResultsPageContent() {
   );
 }
 
-export default function SlugResultsPageClient() {
+export default function SlugResultsPageClient({ slug: propSlug }: { slug?: string }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
@@ -501,7 +475,7 @@ export default function SlugResultsPageClient() {
         </div>
       </div>
     }>
-      <SlugResultsPageContent />
+      <SlugResultsPageContent slug={propSlug} />
     </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateFallbackReportJSON } from '@/lib/fallbackReportGenerator';
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
   const checks = {
     fallbackReportGeneration: false,
@@ -159,7 +159,7 @@ export async function GET(_request: NextRequest) {
     };
 
     console.log('🏥 Health check completed in', results.processingTime, 'ms');
-    console.log('📊 Health score:', results.details.summary.healthScore + '%');
+    console.log('📊 Health score:', (results.details.summary as { healthScore: number }).healthScore + '%');
 
     return NextResponse.json(results, {
       status: criticalPassed ? 200 : 503,

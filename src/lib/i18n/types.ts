@@ -227,6 +227,18 @@ export interface Translations {
     readyToBegin: string;
     moderateComplexity: string;
     longTermVision: string;
+    // Report regeneration
+    reportGeneration: string;
+    reportWillBeGenerated: string;
+    checkEmail: string;
+    regenerating: string;
+    generateReportNow: string;
+    regenerationError: string;
+    regenerationHelp: string;
+    reportIssueDetected: string;
+    reportIssueDescription: string;
+    fixReportNow: string;
+    shareYourReport: string;
   };
   
   // Questions (will be added to quiz questions structure)
