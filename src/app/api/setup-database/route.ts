@@ -5,6 +5,13 @@ export async function POST() {
   try {
     console.log('Setting up Supabase database tables...');
 
+    if (!supabase) {
+      return NextResponse.json({
+        error: 'Supabase client not initialized',
+        setupInstructions: 'Please configure SUPABASE_URL and SUPABASE_ANON_KEY environment variables'
+      }, { status: 500 });
+    }
+
     // Check if we can create tables via SQL
     const { error } = await supabase.rpc('create_tables', {});
     

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Zap, Sparkles, Target, Lightbulb } from 'lucide-react';
+import { ArrowRight, Zap, Target, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation, LanguageSelector } from '@/lib/i18n';
 

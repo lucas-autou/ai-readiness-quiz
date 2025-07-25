@@ -5,8 +5,8 @@
 // In-memory storage for the current function execution
 const reportCache = new Map<string, { report: string; timestamp: number }>();
 
-// Extended storage for mock database entries when Supabase is not available
-const mockDatabase = new Map<string, {
+// Type definition for quiz response
+export type QuizResponse = {
   id: number;
   email: string;
   company: string;
@@ -15,7 +15,10 @@ const mockDatabase = new Map<string, {
   score: number;
   ai_report: string | null;
   created_at: string;
-}>();
+};
+
+// Extended storage for mock database entries when Supabase is not available
+const mockDatabase = new Map<string, QuizResponse>();
 
 export function storeAIReport(responseId: string, report: string): void {
   try {
@@ -89,7 +92,7 @@ export function storeMockQuizResponse(data: {
   }
 }
 
-export function getMockQuizResponse(id: string): any {
+export function getMockQuizResponse(id: string): QuizResponse | null {
   try {
     console.log('🔍 Looking for mock quiz response with ID:', id);
     const result = mockDatabase.get(id);

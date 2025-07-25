@@ -3,6 +3,13 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
+    if (!supabase) {
+      return NextResponse.json({
+        error: 'Supabase client not initialized',
+        message: 'Please configure SUPABASE_URL and SUPABASE_ANON_KEY environment variables'
+      }, { status: 500 });
+    }
+
     // Test if tables exist by trying to select from them
     const { error: quizError } = await supabase
       .from('quiz_responses')

@@ -342,7 +342,7 @@ function ResultsPageContent() {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
-                      {['Summary', 'Challenges', 'Career Impact', 'Quick Wins', 'Roadmap'].map((section, index) => (
+                      {['Summary', 'Challenges', 'Career Impact', 'Quick Wins', 'Roadmap'].map((section) => (
                         <div key={section} className="flex flex-col items-center gap-2">
                           <div className="w-4 h-4 rounded-full shadow-lg" 
                                style={{ background: 'linear-gradient(90deg, #EC4E22, #FFA850)' }}></div>

@@ -170,6 +170,10 @@ export async function insertLead(data: {
 }
 
 export async function getLeadByEmail(email: string) {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
   const { data, error } = await supabase
     .from('leads')
     .select('*')
@@ -184,6 +188,10 @@ export async function getLeadByEmail(email: string) {
 }
 
 export async function getAllLeads() {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
   const { data, error } = await supabase
     .from('leads')
     .select('*')
@@ -197,6 +205,10 @@ export async function getAllLeads() {
 }
 
 export async function getQuizResponsesByEmail(email: string) {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
   const { data, error } = await supabase
     .from('quiz_responses')
     .select('*')
