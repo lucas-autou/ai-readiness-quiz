@@ -149,9 +149,21 @@ export default function QuizPage() {
     return false;
   };
 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen relative overflow-hidden aura-background">
+      {/* Clean minimal background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Simple tree illustration */}
+        <div className="absolute bottom-0 right-16 w-32 h-32 opacity-10">
+          <svg viewBox="0 0 80 80" className="w-full h-full">
+            <rect x="35" y="50" width="10" height="30" fill="var(--aura-vermelho-cinnabar)" />
+            <circle cx="40" cy="30" r="20" fill="var(--aura-coral)" />
+          </svg>
+        </div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-8">
         {/* Language Selector */}
         <div className="flex justify-end mb-8">
           <LanguageSelector />
@@ -159,13 +171,13 @@ export default function QuizPage() {
         {/* Progress Bar */}
         {!isIntroStep && (
           <div className="mb-8">
-            <div className="bg-white/10 rounded-full h-2 max-w-2xl mx-auto">
+            <div className="aura-progress aura-progress-wave h-3 max-w-2xl mx-auto">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                className="aura-progress-bar h-3"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-center text-blue-200 mt-2 text-sm">
+            <p className="text-center mt-3 text-base font-medium aura-text-secondary">
               {isEmailStep ? t('quiz.progress.almostDone') : `${t('quiz.progress.question')} ${currentStep} ${t('quiz.progress.of')} ${quizQuestions.length}`}
             </p>
           </div>
@@ -175,78 +187,97 @@ export default function QuizPage() {
           {/* Intro Step */}
           {isIntroStep && (
             <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-12 border border-white/20">
-                <div className="mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                    <TrendingUp className="w-10 h-10 text-white" />
+              <div className="p-12 relative" style={{ 
+                background: 'rgba(255,255,255,0.9)', 
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                border: '1px solid rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(20px)'
+              }}>
+                
+                <div className="relative z-10">
+                  <div className="mb-8">
+                    <div 
+                      className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
+                      style={{
+                        background: 'var(--aura-gradient-primary)',
+                        boxShadow: '0 8px 24px rgba(236,78,34,0.25)'
+                      }}
+                    >
+                      <TrendingUp className="w-10 h-10 text-white" />
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight aura-heading">
+                      {t('quiz.title')}
+                    </h1>
+                    <p className="text-xl mb-8 leading-relaxed max-w-2xl mx-auto aura-body">
+                      {t('quiz.subtitle')}
+                    </p>
                   </div>
-                  <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                    {t('quiz.title')}
-                  </h1>
-                  <p className="text-xl text-blue-200 mb-8 leading-relaxed max-w-2xl mx-auto">
-                    {t('quiz.subtitle')}
+
+                  <div className="grid md:grid-cols-3 gap-6 mb-10">
+                    <div className="p-6 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(236,78,34,0.2)' }}>
+                        <Clock className="w-6 h-6 aura-icon" />
+                      </div>
+                      <h3 className="font-semibold mb-2 aura-subheading">{t('quiz.features.careerFocused.title')}</h3>
+                      <p className="text-sm aura-body">{t('quiz.features.careerFocused.description')}</p>
+                    </div>
+                    <div className="p-6 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(136,80,226,0.2)' }}>
+                        <Target className="w-6 h-6 aura-icon--violet" />
+                      </div>
+                      <h3 className="font-semibold mb-2 aura-subheading">{t('quiz.features.teamNeeds.title')}</h3>
+                      <p className="text-sm aura-body">{t('quiz.features.teamNeeds.description')}</p>
+                    </div>
+                    <div className="p-6 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(255,168,80,0.2)' }}>
+                        <Lightbulb className="w-6 h-6 aura-icon--coral" />
+                      </div>
+                      <h3 className="font-semibold mb-2 aura-subheading">{t('quiz.features.aiChampion.title')}</h3>
+                      <p className="text-sm aura-body">{t('quiz.features.aiChampion.description')}</p>
+                    </div>
+                  </div>
+
+                  <button onClick={() => setCurrentStep(1)} className="aura-button aura-button-primary aura-button-magnetic aura-liquid-hover text-xl px-12 py-5 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative z-10 flex items-center gap-3">
+                      {t('quiz.startButton')}
+                      <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                    </span>
+                  </button>
+
+                  <p className="text-sm mt-6 aura-text-secondary">
+                    {t('common.free')} • No signup required • Get results instantly
                   </p>
                 </div>
-
-                <div className="grid md:grid-cols-3 gap-6 mb-10">
-                  <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
-                    <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Clock className="w-6 h-6 text-blue-400" />
-                    </div>
-                    <h3 className="font-semibold text-white mb-2">{t('quiz.features.careerFocused.title')}</h3>
-                    <p className="text-blue-200 text-sm">{t('quiz.features.careerFocused.description')}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
-                    <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Target className="w-6 h-6 text-purple-400" />
-                    </div>
-                    <h3 className="font-semibold text-white mb-2">{t('quiz.features.teamNeeds.title')}</h3>
-                    <p className="text-blue-200 text-sm">{t('quiz.features.teamNeeds.description')}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Lightbulb className="w-6 h-6 text-yellow-400" />
-                    </div>
-                    <h3 className="font-semibold text-white mb-2">{t('quiz.features.aiChampion.title')}</h3>
-                    <p className="text-blue-200 text-sm">{t('quiz.features.aiChampion.description')}</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-4 rounded-xl text-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative z-10 flex items-center gap-3">
-                    {t('quiz.startButton')}
-                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
-                </button>
-
-                <p className="text-blue-300 text-sm mt-6">
-                  {t('common.free')} • No signup required • Get results instantly
-                </p>
               </div>
             </div>
           )}
 
           {/* Email Capture Step */}
           {isEmailStep && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-white mb-4">
+            <div className="p-8 relative" style={{ 
+              background: 'rgba(255,255,255,0.9)', 
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(20px)'
+            }}>
+              
+              <div className="relative z-10 text-center mb-8">
+                <h1 className="text-4xl font-bold mb-4 leading-tight aura-heading">
                   {t('quiz.emailCapture.title')}
                 </h1>
-                <p className="text-xl text-blue-200">
+                <p className="text-xl aura-body">
                   {t('quiz.emailCapture.subtitle')}
                 </p>
               </div>
 
-              <form onSubmit={handleEmailSubmit} className="space-y-6">
+              <form onSubmit={handleEmailSubmit} className="space-y-6 relative z-10">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-white font-semibold mb-2">
-                      <Mail className="inline w-4 h-4 mr-2" />
+                    <label className="block font-semibold mb-2 flex items-center gap-2 aura-text-primary">
+                      <Mail className="w-4 h-4 aura-icon" />
                       {t('quiz.emailCapture.emailLabel')}
                     </label>
                     <input
@@ -254,14 +285,14 @@ export default function QuizPage() {
                       required
                       value={userInfo.email}
                       onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="aura-input aura-input-organic w-full px-4 py-3"
                       placeholder={t('quiz.emailCapture.emailPlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-white font-semibold mb-2">
-                      <Building2 className="inline w-4 h-4 mr-2" />
+                    <label className="block font-semibold mb-2 flex items-center gap-2 aura-text-primary">
+                      <Building2 className="w-4 h-4 aura-icon--coral" />
                       {t('quiz.emailCapture.companyLabel')}
                     </label>
                     <input
@@ -269,14 +300,14 @@ export default function QuizPage() {
                       required
                       value={userInfo.company}
                       onChange={(e) => setUserInfo(prev => ({ ...prev, company: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="aura-input aura-input-organic w-full px-4 py-3"
                       placeholder={t('quiz.emailCapture.companyPlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-white font-semibold mb-2">
-                      <User className="inline w-4 h-4 mr-2" />
+                    <label className="block font-semibold mb-2 flex items-center gap-2 aura-text-primary">
+                      <User className="w-4 h-4 aura-icon--violet" />
                       {t('quiz.emailCapture.jobTitleLabel')}
                     </label>
                     <input
@@ -284,7 +315,7 @@ export default function QuizPage() {
                       required
                       value={userInfo.jobTitle}
                       onChange={(e) => setUserInfo(prev => ({ ...prev, jobTitle: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="aura-input aura-input-organic w-full px-4 py-3"
                       placeholder={t('quiz.emailCapture.jobTitlePlaceholder')}
                     />
                   </div>
@@ -293,23 +324,29 @@ export default function QuizPage() {
                 <button
                   type="submit"
                   disabled={!canProceed() || isSubmitting}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white py-4 rounded-lg text-lg font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                  className="aura-button w-full py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{
+                    background: !canProceed() || isSubmitting 
+                      ? 'var(--aura-medium-gray)' 
+                      : 'var(--aura-gradient-secondary)',
+                    color: 'white',
+                    boxShadow: !canProceed() || isSubmitting 
+                      ? 'none' 
+                      : '0 8px 24px rgba(136,80,226,0.25)'
+                  }}
                 >
                   {isSubmitting ? t('quiz.emailCapture.buildingPlaybook') : t('quiz.emailCapture.submitButton')}
                   <ArrowRight className="w-5 h-5" />
                 </button>
 
-                <p className="text-center text-blue-200 text-sm">
+                <p className="text-center text-sm aura-text-secondary">
                   {t('quiz.emailCapture.securityNote')}
                 </p>
               </form>
 
               {/* Email step navigation */}
-              <div className="flex justify-between mt-6">
-                <button
-                  onClick={handleBack}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg text-blue-200 hover:text-white hover:bg-white/10 transition-all duration-200"
-                >
+              <div className="flex justify-between mt-6 relative z-10">
+                <button onClick={handleBack} className="aura-button aura-button-secondary flex items-center gap-2 px-6 py-3">
                   <ArrowLeft className="w-4 h-4" />
                   {t('common.back')}
                 </button>
@@ -320,52 +357,85 @@ export default function QuizPage() {
 
           {/* Quiz Questions */}
           {isQuizStep && currentQuestion && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-white mb-4">
+            <div className="p-8 relative" style={{ 
+              background: 'rgba(255,255,255,0.9)', 
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(20px)'
+            }}>
+              
+              <div className="relative z-10 text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4 leading-tight aura-heading">
                   {currentQuestion.question}
                 </h2>
                 {currentQuestion.subtitle && (
-                  <p className="text-xl text-blue-200 mb-6 max-w-2xl mx-auto">
+                  <p className="text-xl mb-6 max-w-2xl mx-auto leading-relaxed aura-body">
                     {currentQuestion.subtitle}
                   </p>
                 )}
-                <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
+                <div 
+                  className="w-16 h-1 mx-auto rounded-full"
+                  style={{
+                    background: 'linear-gradient(90deg, var(--aura-cinnabar) 0%, var(--aura-coral) 50%, var(--aura-violet) 100%)'
+                  }}
+                ></div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 relative z-10">
                 {currentQuestion.type === 'multiple-choice' && currentQuestion.options && (
                   <div className="grid gap-4">
                     {currentQuestion.options.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => handleQuestionResponse(option)}
-                        className={`group relative p-6 rounded-xl text-left transition-all duration-300 border-2 transform hover:scale-[1.02] ${
+                        className={`group relative p-6 rounded-2xl text-left transition-all duration-300 transform hover:scale-[1.02] ${
                           responses[currentQuestion.id] === option
-                            ? 'bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-blue-400 text-white shadow-lg shadow-blue-500/25'
-                            : 'bg-white/5 border-white/20 text-blue-100 hover:bg-white/10 hover:border-white/30 hover:shadow-lg'
+                            ? 'shadow-xl'
+                            : 'hover:shadow-lg'
                         }`}
+                        style={{
+                          background: responses[currentQuestion.id] === option 
+                            ? 'rgba(236,78,34,0.1)' 
+                            : 'rgba(255,255,255,0.9)',
+                          border: responses[currentQuestion.id] === option 
+                            ? '2px solid var(--aura-vermelho-cinnabar)' 
+                            : '1px solid rgba(0,0,0,0.08)',
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: responses[currentQuestion.id] === option 
+                            ? '0 8px 32px rgba(236,78,34,0.15)' 
+                            : '0 2px 8px rgba(0,0,0,0.04)'
+                        }}
                       >
                         <div className="flex items-start gap-4">
-                          <div className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                            responses[currentQuestion.id] === option
-                              ? 'bg-blue-400 border-blue-400 scale-110'
-                              : 'border-white/40 group-hover:border-white/60'
-                          }`}>
+                          <div 
+                            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                              responses[currentQuestion.id] === option ? 'scale-110' : ''
+                            }`}
+                            style={{
+                              background: responses[currentQuestion.id] === option ? 'var(--aura-cinnabar)' : 'transparent',
+                              borderColor: responses[currentQuestion.id] === option ? 'var(--aura-cinnabar)' : 'var(--aura-medium-gray)'
+                            }}
+                          >
                             {responses[currentQuestion.id] === option && (
                               <CheckCircle className="w-4 h-4 text-white" />
                             )}
                           </div>
                           <div className="flex-1">
-                            <div className={`font-medium text-lg leading-relaxed ${
-                              responses[currentQuestion.id] === option ? 'text-white' : 'text-blue-100'
-                            }`}>
+                            <div 
+                              className={`font-medium text-lg leading-relaxed aura-text-primary ${
+                                responses[currentQuestion.id] === option ? 'font-semibold' : ''
+                              }`}
+                            >
                               {option}
                             </div>
                           </div>
                           {responses[currentQuestion.id] === option && (
                             <div className="absolute top-4 right-4">
-                              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                              <div 
+                                className="w-2 h-2 rounded-full animate-pulse"
+                                style={{ background: 'var(--aura-cinnabar)' }}
+                              ></div>
                             </div>
                           )}
                         </div>
@@ -379,12 +449,18 @@ export default function QuizPage() {
                   <>
                     {currentQuestion.multiSelect && (
                       <div className="mb-6 text-center">
-                        <div className="inline-flex items-center gap-2 bg-blue-600/20 px-4 py-2 rounded-full">
-                          <span className="text-blue-200 text-sm">
+                        <div 
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                          style={{ background: 'rgba(255,168,80,0.2)' }}
+                        >
+                          <span className="text-sm aura-text-primary">
                             {t('quiz.multiSelect.selectUpTo')} {currentQuestion.maxSelections} options
                           </span>
                           {Array.isArray(responses[currentQuestion.id]) && (
-                            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                            <span 
+                              className="text-white px-2 py-1 rounded-full text-xs font-bold"
+                              style={{ background: 'var(--aura-coral)' }}
+                            >
                               {(responses[currentQuestion.id] as string[]).length}
                             </span>
                           )}
@@ -402,29 +478,42 @@ export default function QuizPage() {
                           <button
                             key={index}
                             onClick={() => handleQuestionResponse(card.value)}
-                            className={`group relative p-6 rounded-2xl text-left transition-all duration-300 border-2 transform hover:scale-[1.02] ${
-                              isSelected
-                                ? 'bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-blue-400 shadow-xl shadow-blue-500/25'
-                                : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 hover:shadow-lg'
+                            className={`group relative p-6 text-left transition-all duration-300 transform hover:scale-[1.02] ${
+                              isSelected ? 'shadow-xl' : 'hover:shadow-lg'
                             }`}
+                            style={{
+                              background: isSelected 
+                                ? 'rgba(255,168,80,0.1)' 
+                                : 'rgba(255,255,255,0.9)',
+                              border: isSelected 
+                                ? '2px solid var(--aura-coral)' 
+                                : '1px solid rgba(0,0,0,0.08)',
+                              borderRadius: '24px',
+                              backdropFilter: 'blur(20px)',
+                              boxShadow: isSelected 
+                                ? '0 8px 32px rgba(255,168,80,0.15)' 
+                                : '0 2px 8px rgba(0,0,0,0.04)'
+                            }}
                           >
-                            <div className="flex items-start gap-4">
+                            
+                            <div className={`flex items-start gap-4 relative z-10 ${isSelected ? 'pr-10' : ''}`}>
                               <div className="text-3xl">{card.icon}</div>
                               <div className="flex-1">
-                                <h3 className={`text-xl font-bold mb-2 ${
-                                  isSelected ? 'text-white' : 'text-blue-100'
-                                }`}>
+                                <h3 className={`text-xl font-bold mb-3 aura-subheading ${isSelected ? 'font-semibold' : ''}`}>
                                   {card.title}
                                 </h3>
-                                <p className={`text-sm leading-relaxed ${
-                                  isSelected ? 'text-blue-100' : 'text-blue-200'
-                                }`}>
+                                <p className="text-sm leading-relaxed aura-body">
                                   {card.description}
                                 </p>
                               </div>
                               {isSelected && (
-                                <div className="absolute top-4 right-4">
-                                  <CheckCircle className="w-6 h-6 text-green-400" />
+                                <div className="absolute top-2 right-2">
+                                  <div 
+                                    className="w-6 h-6 rounded-full flex items-center justify-center"
+                                    style={{ background: 'var(--aura-coral)' }}
+                                  >
+                                    <CheckCircle className="w-4 h-4 text-white" />
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -438,8 +527,16 @@ export default function QuizPage() {
                 {/* Slider Interface */}
                 {currentQuestion.type === 'slider' && (
                   <div className="space-y-8">
-                    <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                      <div className="flex justify-between text-blue-300 text-sm font-medium mb-8">
+                    <div 
+                      className="rounded-2xl p-8 border relative"
+                      style={{
+                        background: `linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.90) 100%)`,
+                        border: '2px solid rgba(136,80,226,0.3)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: `0 12px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)`
+                      }}
+                    >
+                      <div className="flex justify-between text-sm font-medium mb-8 aura-text-secondary">
                         <span className="flex items-center gap-2 text-left max-w-[40%]">
                           <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                           {currentQuestion.scaleLabels?.min}
@@ -469,11 +566,14 @@ export default function QuizPage() {
                       
                       {responses[currentQuestion.id] && (
                         <div className="text-center">
-                          <div className="inline-flex items-center gap-2 bg-blue-600/30 px-4 py-2 rounded-full">
-                            <span className="text-white font-bold text-lg">
+                          <div 
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                            style={{ background: 'rgba(255,168,80,0.3)' }}
+                          >
+                            <span className="font-bold text-lg aura-text-primary">
                               {responses[currentQuestion.id]}
                             </span>
-                            <span className="text-blue-200 text-sm">
+                            <span className="text-sm aura-text-secondary">
                               / {currentQuestion.scaleMax || 10}
                             </span>
                           </div>
@@ -485,8 +585,16 @@ export default function QuizPage() {
 
                 {currentQuestion.type === 'scale' && (
                   <div className="space-y-8">
-                    <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                      <div className="flex justify-between text-blue-300 text-sm font-medium mb-8">
+                    <div 
+                      className="rounded-2xl p-8 border relative"
+                      style={{
+                        background: `linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.90) 100%)`,
+                        border: '2px solid rgba(136,80,226,0.3)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: `0 12px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)`
+                      }}
+                    >
+                      <div className="flex justify-between text-sm font-medium mb-8 aura-text-secondary">
                         <span className="flex items-center gap-2">
                           <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                           {currentQuestion.scaleLabels?.min}
@@ -504,9 +612,24 @@ export default function QuizPage() {
                             onClick={() => handleQuestionResponse(value.toString())}
                             className={`group relative flex-1 aspect-square max-w-[80px] rounded-2xl text-center font-bold text-xl transition-all duration-300 transform ${
                               responses[currentQuestion.id] === value.toString()
-                                ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white scale-110 shadow-2xl shadow-blue-500/50'
-                                : 'bg-white/10 text-blue-200 hover:bg-white/20 hover:scale-105 hover:shadow-lg border border-white/20'
+                                ? 'scale-110 shadow-2xl'
+                                : 'hover:scale-105 hover:shadow-lg'
                             }`}
+                            style={{
+                              background: responses[currentQuestion.id] === value.toString()
+                                ? 'var(--aura-gradient-primary)'
+                                : 'rgba(255,255,255,0.8)',
+                              color: responses[currentQuestion.id] === value.toString()
+                                ? 'white'
+                                : 'var(--aura-dark-gray)',
+                              border: responses[currentQuestion.id] === value.toString()
+                                ? 'none'
+                                : '1px solid rgba(255,255,255,0.6)',
+                              boxShadow: responses[currentQuestion.id] === value.toString()
+                                ? '0 8px 24px rgba(236,78,34,0.25)'
+                                : '0 4px 12px rgba(0,0,0,0.08)',
+                              backdropFilter: 'blur(20px)'
+                            }}
                           >
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             <div className="relative flex items-center justify-center h-full">
@@ -514,7 +637,10 @@ export default function QuizPage() {
                             </div>
                             {responses[currentQuestion.id] === value.toString() && (
                               <div className="absolute -top-2 -right-2">
-                                <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                                <div 
+                                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                                  style={{ background: 'var(--aura-coral)' }}
+                                >
                                   <CheckCircle className="w-4 h-4 text-white" />
                                 </div>
                               </div>
@@ -524,7 +650,7 @@ export default function QuizPage() {
                       </div>
                       
                       <div className="mt-6 text-center">
-                        <p className="text-blue-300 text-sm">
+                        <p className="text-sm aura-text-secondary">
                           {t('quiz.scale.clickToRate')}
                         </p>
                       </div>
@@ -534,11 +660,11 @@ export default function QuizPage() {
               </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center mt-12">
+              <div className="flex justify-between items-center mt-12 relative z-10">
                 <button
                   onClick={handleBack}
                   disabled={currentStep === 1}
-                  className="group flex items-center gap-2 px-6 py-3 rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="aura-button aura-button-secondary group flex items-center gap-2 px-6 py-3 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
                   <span className="font-medium">{t('common.back')}</span>
@@ -546,7 +672,13 @@ export default function QuizPage() {
 
                 <div className="flex items-center gap-3">
                   {canProceed() && (
-                    <div className="flex items-center gap-2 text-green-400 animate-fade-in">
+                    <div 
+                      className="flex items-center gap-2 animate-fade-in px-3 py-2 rounded-full"
+                      style={{ 
+                        background: 'rgba(255,168,80,0.2)',
+                        color: 'var(--aura-coral)'
+                      }}
+                    >
                       <CheckCircle className="w-5 h-5" />
                       <span className="text-sm font-medium">
                         {currentQuestion.multiSelect 
@@ -560,7 +692,16 @@ export default function QuizPage() {
                   <button
                     onClick={handleNext}
                     disabled={!canProceed()}
-                    className="group relative overflow-hidden flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-2xl disabled:hover:scale-100 disabled:opacity-50"
+                    className="aura-button group relative overflow-hidden flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold disabled:opacity-50"
+                    style={{
+                      background: !canProceed() 
+                        ? 'var(--aura-medium-gray)' 
+                        : 'var(--aura-gradient-primary)',
+                      color: 'white',
+                      boxShadow: !canProceed() 
+                        ? 'none' 
+                        : '0 8px 24px rgba(236,78,34,0.25)'
+                    }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <span className="relative z-10">

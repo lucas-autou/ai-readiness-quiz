@@ -87,26 +87,79 @@ function ResultsPageContent() {
   const parseJSONReport = (report: string): ReportData | null => {
     try {
       const parsed = JSON.parse(report);
+      console.log('Parsed report structure:', Object.keys(parsed));
+      console.log('Full parsed report:', parsed);
       
-      // Validate structure for new department-focused report
-      if (parsed.executive_summary && parsed.department_challenges && 
-          parsed.career_impact && parsed.quick_wins && parsed.implementation_roadmap) {
-        return parsed as ReportData;
+      // More flexible validation - just check if it's an object with some expected fields
+      if (parsed && typeof parsed === 'object') {
+        // If it has the new structure, return it
+        if (parsed.executive_summary && parsed.department_challenges && 
+            parsed.career_impact && parsed.quick_wins && parsed.implementation_roadmap) {
+          return parsed as ReportData;
+        }
+        
+        // If it has some content, try to create a structure from any available data
+        if (Object.keys(parsed).length > 0) {
+          console.log('Creating fallback structure from available data');
+          
+          // Try to extract content intelligently
+          const allValues = Object.values(parsed).filter(v => typeof v === 'string' && v.length > 10);
+          const firstContent = allValues[0] || 'Relatório personalizado gerado com base nas suas respostas.';
+          
+          return {
+            executive_summary: parsed.executive_summary || parsed.summary || parsed.overview || firstContent,
+            department_challenges: Array.isArray(parsed.department_challenges) ? parsed.department_challenges 
+              : Array.isArray(parsed.challenges) ? parsed.challenges 
+              : parsed.challenges ? [parsed.challenges]
+              : ['Análise de desafios específicos identificados para o seu departamento'],
+            career_impact: parsed.career_impact || {
+              personal_productivity: parsed.productivity || 'Aumento significativo na produtividade pessoal através de ferramentas de IA',
+              team_performance: parsed.team || 'Melhoria no desempenho da equipe com automação inteligente',
+              leadership_recognition: parsed.leadership || 'Reconhecimento como líder inovador e visionário em IA',
+              professional_growth: parsed.growth || 'Crescimento profissional acelerado através de competências em IA'
+            },
+            quick_wins: parsed.quick_wins || {
+              month_1_actions: parsed.actions || [
+                { action: 'Identificar e testar ferramentas de IA relevantes para o departamento', impact: 'Base sólida para implementação e resultados rápidos' }
+              ],
+              quarter_1_goals: parsed.goals || [
+                { goal: 'Implementar primeira solução de IA piloto', outcome: 'Resultados mensuráveis e aprovação para expansão' }
+              ]
+            },
+            implementation_roadmap: Array.isArray(parsed.implementation_roadmap) ? parsed.implementation_roadmap
+              : Array.isArray(parsed.roadmap) ? parsed.roadmap
+              : [
+                {
+                  phase: 'Fase 1: Avaliação e Planejamento',
+                  duration: '4 semanas',
+                  description: 'Análise detalhada das necessidades do departamento e preparação estratégica',
+                  career_benefit: 'Posicionamento como líder visionário e estrategista em IA'
+                },
+                {
+                  phase: 'Fase 2: Implementação Piloto',
+                  duration: '6 semanas',
+                  description: 'Desenvolvimento e teste de soluções de IA específicas',
+                  career_benefit: 'Demonstração de resultados tangíveis e liderança prática'
+                }
+              ]
+          } as ReportData;
+        }
       }
       
       return null;
     } catch (error) {
       console.error('Failed to parse JSON report:', error);
+      console.log('Raw report content:', report?.substring(0, 200) + '...');
       return null;
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+      <div className="aura-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white text-lg">{t('results.loading')}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-aura-vermelho-cinnabar mx-auto mb-4"></div>
+          <p className="aura-text-primary text-lg font-medium">{t('results.loading')}</p>
         </div>
       </div>
     );
@@ -114,14 +167,14 @@ function ResultsPageContent() {
 
   if (error || !result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+      <div className="aura-background flex items-center justify-center">
         <div className="text-center max-w-md">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-            <h1 className="text-2xl font-bold text-white mb-4">{t('results.error')}</h1>
-            <p className="text-blue-200 mb-6">{error}</p>
+          <div className="aura-card p-8">
+            <h1 className="aura-heading text-2xl mb-4">{t('results.error')}</h1>
+            <p className="aura-text-secondary mb-6">{error}</p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200"
+              className="aura-button aura-button-primary"
             >
               {t('results.tryAgain')}
               <ArrowRight className="w-4 h-4" />
@@ -134,107 +187,114 @@ function ResultsPageContent() {
 
   const scoreLevel = getScoreLevel(result.score);
   const reportData = result.aiReport ? parseJSONReport(result.aiReport) : null;
+  
+  // Debug info
+  if (result.aiReport && !reportData) {
+    console.log('Report exists but parsing failed. Raw report length:', result.aiReport.length);
+    console.log('First 300 chars:', result.aiReport.substring(0, 300));
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="aura-background">
+      <div className="aura-container py-8 sm:py-12">
         {/* Language Selector */}
         <div className="flex justify-end mb-8">
           <LanguageSelector />
         </div>
         {/* Premium Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-              <TrendingUp className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center gap-4 mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-orange-400 rounded-3xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)' }}>
+              <TrendingUp className="w-10 h-10 text-white" />
             </div>
             <div className="text-left">
-              <div className="text-sm text-blue-300 uppercase tracking-widest font-semibold">{t('results.executiveReport')}</div>
-              <div className="text-lg text-white font-semibold">{result.company}</div>
+              <div className="text-sm uppercase tracking-widest font-bold" style={{ color: '#EC4E22' }}>{t('results.executiveReport')}</div>
+              <div className="text-xl aura-text-primary font-bold">{result.company}</div>
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 className="aura-heading text-4xl sm:text-5xl md:text-7xl mb-8 leading-tight">
             {t('results.yourAiChampion')}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"> {t('results.yourAiChampionHighlight')}</span>
+            <br />
+            <span className="aura-text-glow">{t('results.yourAiChampionHighlight')}</span>
           </h1>
-          <p className="text-lg sm:text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
+          <p className="aura-body text-xl max-w-4xl mx-auto leading-relaxed mb-8">
             {t('results.personalizedRoadmap')}
           </p>
-          <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 mt-6 text-sm text-blue-300">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span>{t('results.confidential')}</span>
+          <div className="flex items-center justify-center flex-wrap gap-6 mt-8">
+            <div className="aura-glass rounded-full px-4 py-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="aura-text-primary text-sm font-semibold">{t('results.confidential')}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span>{t('results.personalized')}</span>
+            <div className="aura-glass rounded-full px-4 py-2 flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: '#EC4E22' }}></div>
+              <span className="aura-text-primary text-sm font-semibold">{t('results.personalized')}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span>{t('results.actionable')}</span>
+            <div className="aura-glass rounded-full px-4 py-2 flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: '#8850E2' }}></div>
+              <span className="aura-text-primary text-sm font-semibold">{t('results.actionable')}</span>
             </div>
           </div>
         </div>
 
         {/* Executive Score Card */}
-        <div className="max-w-5xl mx-auto mb-32">
-          <div className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-sm rounded-3xl p-10 border border-white/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
+        <div className="max-w-6xl mx-auto mb-24">
+          <div className="aura-card p-12 relative overflow-hidden">
+            {/* Subtle background patterns */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-aura-coral/20 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-aura-violeta/20 to-transparent rounded-full blur-2xl"></div>
             
             <div className="relative z-10">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-3 bg-white/10 rounded-full px-6 py-2 mb-4">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-white font-semibold">{t('results.assessmentComplete')}</span>
+              <div className="text-center mb-10">
+                <div className="aura-glass rounded-full px-6 py-3 mb-6 inline-flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="aura-text-primary font-bold">{t('results.assessmentComplete')}</span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{t('results.aiChampionReadiness')}</h2>
-                <p className="text-blue-200">{t('results.departmentAnalysis')}</p>
+                <h2 className="aura-heading text-4xl md:text-5xl mb-3">{t('results.aiChampionReadiness')}</h2>
+                <p className="aura-text-secondary text-lg">{t('results.departmentAnalysis')}</p>
               </div>
             
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
-                  <div className="text-6xl sm:text-7xl md:text-8xl font-black text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text mb-2">{result.score}</div>
-                  <div className="text-lg sm:text-xl text-blue-300 font-semibold">{t('results.readinessScore')}</div>
-                  <div className="text-sm text-blue-400">{t('results.outOf100')}</div>
+                  <div className="text-7xl sm:text-8xl md:text-9xl font-black aura-text-glow mb-3">{result.score}</div>
+                  <div className="aura-heading text-xl mb-1">{t('results.readinessScore')}</div>
+                  <div className="aura-text-secondary text-sm">{t('results.outOf100')}</div>
                 </div>
                 
                 <div className="text-center">
-                  <div className={`inline-flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl ${scoreLevel.bgColor} mb-3`}>
-                    <div className={`w-4 h-4 rounded-full ${scoreLevel.color.replace('text-', 'bg-')}`}></div>
-                    <span className={`text-lg sm:text-xl font-bold ${scoreLevel.color}`}>
+                  <div className={`aura-glass rounded-2xl px-6 py-4 mb-4 inline-flex items-center gap-3`}>
+                    <div className="w-4 h-4 rounded-full bg-aura-vermelho-cinnabar"></div>
+                    <span className="aura-heading text-xl">
                       {scoreLevel.level}
                     </span>
                   </div>
-                  <div className="text-blue-200 text-sm">{t('results.currentStatus')}</div>
+                  <div className="aura-text-secondary text-sm">{t('results.currentStatus')}</div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-2">
+                  <div className="text-4xl mb-3">
                     {result.score >= 80 ? '🚀' : result.score >= 60 ? '⚡' : result.score >= 40 ? '🎯' : '🏗️'}
                   </div>
-                  <div className="text-base sm:text-lg font-semibold text-white">
+                  <div className="aura-heading text-lg mb-1">
                     {result.score >= 80 ? t('results.championReady') : result.score >= 60 ? t('results.buildSkills') : result.score >= 40 ? t('results.learnExplore') : t('results.startLearning')}
                   </div>
-                  <div className="text-blue-200 text-sm">{t('results.recommendedAction')}</div>
+                  <div className="aura-text-secondary text-sm">{t('results.recommendedAction')}</div>
                 </div>
               </div>
 
               {/* Premium Score Visualization */}
-              <div className="bg-white/5 rounded-2xl p-6 mb-6">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-blue-300 font-medium">{t('results.aiReadinessProgress')}</span>
-                  <span className="text-white font-bold">{result.score}%</span>
+              <div className="aura-glass rounded-2xl p-8 mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="aura-text-primary font-bold text-lg">{t('results.aiReadinessProgress')}</span>
+                  <span className="aura-heading text-2xl">{result.score}%</span>
                 </div>
-                <div className="bg-white/10 rounded-full h-3 relative overflow-hidden">
+                <div className="aura-progress h-4 mb-4">
                   <div 
-                    className="bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 h-3 rounded-full transition-all duration-2000 relative"
+                    className="aura-progress-bar h-4 transition-all duration-2000 aura-progress-wave"
                     style={{ width: `${result.score}%` }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
                   </div>
                 </div>
-                <div className="flex justify-between text-xs text-blue-300 mt-2">
+                <div className="flex justify-between text-sm aura-text-secondary">
                   <span>{t('results.aiBeginner')}</span>
                   <span>{t('results.aiCurious')}</span>
                   <span>{t('results.aiExplorer')}</span>
@@ -242,8 +302,8 @@ function ResultsPageContent() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-xl p-6 border border-white/10">
-                <p className="text-blue-100 max-w-3xl mx-auto text-center leading-relaxed">
+              <div className="aura-glass-selected rounded-2xl p-8">
+                <p className="aura-text-primary text-center text-lg leading-relaxed max-w-4xl mx-auto">
                   {t('results.assessmentSummary', { company: result.company })}
                 </p>
               </div>
@@ -252,127 +312,157 @@ function ResultsPageContent() {
         </div>
 
         {/* Major Section Divider */}
-        <div className="flex items-center justify-center my-32">
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
+        <div className="flex items-center justify-center my-24">
+          <div className="flex-1 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,168,80,0.6), transparent)' }}></div>
           <div className="mx-12 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse shadow-lg"></div>
-              <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-violet-400 rounded-full animate-pulse delay-150 shadow-lg"></div>
-              <div className="w-4 h-4 bg-gradient-to-r from-violet-400 to-blue-400 rounded-full animate-pulse delay-300 shadow-lg"></div>
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full animate-pulse shadow-lg" style={{ backgroundColor: '#EC4E22' }}></div>
+              <div className="w-3 h-3 rounded-full animate-pulse delay-150 shadow-lg" style={{ backgroundColor: '#FFA850' }}></div>
+              <div className="w-4 h-4 rounded-full animate-pulse delay-300 shadow-lg" style={{ backgroundColor: '#8850E2' }}></div>
             </div>
             <div className="text-center">
-              <p className="text-blue-300 text-sm font-medium">{t('results.detailedAnalysisReport')}</p>
-              <p className="text-white/60 text-xs">{t('results.personalizedFor')} {result.company}</p>
+              <p className="text-sm font-bold uppercase tracking-wide" style={{ color: '#EC4E22' }}>{t('results.detailedAnalysisReport')}</p>
+              <p className="aura-text-secondary text-xs">{t('results.personalizedFor')} {result.company}</p>
             </div>
           </div>
-          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent"></div>
+          <div className="flex-1 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(136,80,226,0.6), transparent)' }}></div>
         </div>
 
         {/* Executive Report Dashboard */}
         {reportData ? (
           <div className="executive-report-dashboard max-w-7xl mx-auto space-y-20">
-            {/* Progress Navigation */}
-            <div className="sticky top-4 z-50 mb-12">
-              <div className="bg-black/30 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl max-w-4xl mx-auto">
+            {/* Progress Navigation - Static Position */}
+            <div className="mb-16">
+              <div className="aura-glass rounded-3xl p-6 shadow-2xl max-w-5xl mx-auto border border-white/20">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse"></div>
-                    <span className="text-white font-semibold text-lg">{t('results.executiveAiChampionReport')}</span>
-                  </div>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full animate-pulse shadow-lg" 
+                         style={{ backgroundColor: '#EC4E22' }}></div>
+                    <span className="aura-heading text-lg">{t('results.executiveAiChampionReport')}</span>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
                       {['Summary', 'Challenges', 'Career Impact', 'Quick Wins', 'Roadmap'].map((section, index) => (
-                        <div key={section} className="flex flex-col items-center gap-1">
-                          <div className={`w-3 h-3 rounded-full transition-all duration-500 ${index < 5 ? 'bg-gradient-to-r from-blue-400 to-purple-400 shadow-lg' : 'bg-white/30'}`}></div>
-                          <span className="text-xs text-blue-300 hidden sm:block">{section}</span>
+                        <div key={section} className="flex flex-col items-center gap-2">
+                          <div className="w-4 h-4 rounded-full shadow-lg" 
+                               style={{ background: 'linear-gradient(90deg, #EC4E22, #FFA850)' }}></div>
+                          <span className="text-xs aura-text-primary font-medium hidden sm:block">{section}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-3 py-1 rounded-full border border-green-400/30">
-                      <span className="text-green-300 text-sm font-bold">{t('results.complete')}</span>
+                    <div className="aura-glass-selected px-4 py-2 rounded-full">
+                      <span className="aura-text-primary text-sm font-bold">{t('results.complete')}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Executive Summary Section */}
-            <section className="group relative bg-gradient-to-br from-emerald-500/20 to-teal-600/15 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border-2 border-emerald-400/40 shadow-2xl hover:shadow-emerald-500/10 transition-all duration-700 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-400/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            {/* === EXECUTIVE SUMMARY === */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-green-500/60 to-transparent rounded-full"></div>
+                <div className="flex items-center gap-4 px-8 py-4 bg-green-500/10 rounded-2xl border-2 border-green-500/30 shadow-xl">
+                  <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <CheckCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl text-green-700 font-black uppercase tracking-wider">{t('results.executiveSummary')}</span>
+                </div>
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-green-500/60 to-transparent rounded-full"></div>
+              </div>
               
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+            <section className="group relative aura-card aura-hover-lift overflow-hidden shadow-2xl">
+              {/* Subtle background patterns */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-400/10 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-10 lg:p-12">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-12">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center shadow-xl ring-4 ring-emerald-400/20 group-hover:ring-emerald-400/40 group-hover:scale-105 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                      <CheckCircle className="w-12 h-12 text-white relative z-10" />
+                    <div className="w-28 h-28 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-green-400/30 group-hover:ring-green-400/50 group-hover:scale-105 transition-all duration-500">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                      <CheckCircle className="w-14 h-14 text-white relative z-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="absolute -top-3 -right-3 w-8 h-8 bg-green-400 rounded-full animate-pulse shadow-xl"></div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">{t('results.executiveSummary')}</h2>
-                      <div className="hidden sm:flex items-center gap-2 bg-emerald-500/20 px-4 py-2 rounded-full border border-emerald-400/30">
-                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                        <span className="text-emerald-200 text-sm font-medium">{t('results.criticalInsights')}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                      <h2 className="aura-heading text-4xl lg:text-6xl tracking-tight">{t('results.executiveSummary')}</h2>
+                      <div className="aura-glass-selected px-4 py-2 rounded-full flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="aura-text-primary text-sm font-bold">{t('results.criticalInsights')}</span>
                       </div>
                     </div>
-                    <p className="text-lg text-emerald-200 leading-relaxed">{t('results.strategicOverview')}</p>
+                    <p className="aura-text-secondary text-lg leading-relaxed">{t('results.strategicOverview')}</p>
                   </div>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/15 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-teal-500/5 rounded-2xl"></div>
+                <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 rounded-3xl"></div>
                   <div className="relative z-10">
-                    <p className="text-white text-xl lg:text-2xl leading-relaxed font-light tracking-wide">{reportData.executive_summary}</p>
+                    <p className="aura-text-primary text-xl lg:text-2xl leading-relaxed font-medium tracking-wide">{reportData.executive_summary}</p>
                   </div>
                 </div>
               </div>
             </section>
+            </div>
 
-            {/* Department Challenges Section */}
-            <section className="group relative bg-gradient-to-br from-red-500/20 to-orange-600/15 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border-2 border-red-400/40 shadow-2xl hover:shadow-red-500/10 transition-all duration-700 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-red-400/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            {/* === DEPARTMENT CHALLENGES === */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(236,78,34,0.6), transparent)' }}></div>
+                <div className="flex items-center gap-4 px-8 py-4 rounded-2xl border-2 shadow-xl" style={{ backgroundColor: 'rgba(236,78,34,0.1)', borderColor: 'rgba(236,78,34,0.3)' }}>
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#EC4E22' }}>
+                    <Target className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl font-black uppercase tracking-wider" style={{ color: '#EC4E22' }}>{t('results.keyChallenges')}</span>
+                </div>
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(236,78,34,0.6), transparent)' }}></div>
+              </div>
               
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+            <section className="group relative aura-card aura-hover-lift overflow-hidden shadow-2xl">
+              {/* Subtle background patterns */}
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl"></div>
+              <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-orange-400/10 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-10 lg:p-12">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-12">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center shadow-xl ring-4 ring-red-400/20 group-hover:ring-red-400/40 group-hover:scale-105 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                      <Target className="w-12 h-12 text-white relative z-10" />
+                    <div className="w-28 h-28 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-red-500/30 group-hover:ring-red-500/50 group-hover:scale-105 transition-all duration-500"
+                         style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)' }}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                      <Target className="w-14 h-14 text-white relative z-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full animate-pulse shadow-xl"
+                         style={{ backgroundColor: '#FFA850' }}></div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">{t('results.departmentChallenges')}</h2>
-                      <div className="hidden sm:flex items-center gap-2 bg-red-500/20 px-4 py-2 rounded-full border border-red-400/30">
-                        <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-                        <span className="text-red-200 text-sm font-medium">{t('results.keyObstacles')}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                      <h2 className="aura-heading text-4xl lg:text-6xl tracking-tight">{t('results.departmentChallenges')}</h2>
+                      <div className="aura-glass-selected px-4 py-2 rounded-full flex items-center gap-2">
+                        <div className="w-2 h-2 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
+                        <span className="aura-text-primary text-sm font-bold">{t('results.keyObstacles')}</span>
                       </div>
                     </div>
-                    <p className="text-lg text-red-200 leading-relaxed">{t('results.criticalChallenges')}</p>
+                    <p className="aura-text-secondary text-lg leading-relaxed">{t('results.criticalChallenges')}</p>
                   </div>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/15 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-orange-500/5 rounded-2xl"></div>
-                  <div className="relative z-10 space-y-6">
+                <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-aura-vermelho-cinnabar/5 via-transparent to-aura-coral/5 rounded-3xl"></div>
+                  <div className="relative z-10 space-y-8">
                     {reportData.department_challenges.map((challenge, index) => (
-                      <div key={index} className="group/item bg-red-500/10 hover:bg-red-500/15 border border-red-500/30 hover:border-red-400/50 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10">
-                        <div className="flex items-start gap-4">
+                      <div key={index} className="group/item aura-glass aura-hover-lift rounded-2xl p-8 transition-all duration-300">
+                        <div className="flex items-start gap-6">
                           <div className="relative">
-                            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover/item:scale-110 transition-transform duration-300">
-                              <span className="text-white font-bold text-lg">{index + 1}</span>
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl group-hover/item:scale-110 transition-transform duration-300"
+                                 style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)' }}>
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                              <span className="text-white font-black text-2xl relative z-10">{index + 1}</span>
                             </div>
-                            <div className="absolute -inset-1 bg-red-400/20 rounded-xl blur-sm opacity-0 group-hover/item:opacity-100 transition-opacity duration-300"></div>
                           </div>
                           <div className="flex-1">
-                            <p className="text-white text-lg lg:text-xl font-medium leading-relaxed tracking-wide">{challenge}</p>
+                            <p className="aura-text-primary text-lg lg:text-xl font-medium leading-relaxed">{challenge}</p>
                           </div>
                         </div>
                       </div>
@@ -381,87 +471,108 @@ function ResultsPageContent() {
                 </div>
               </div>
             </section>
+            </div>
 
-            {/* Career Impact Section */}
-            <section className="group relative bg-gradient-to-br from-orange-500/20 to-yellow-600/15 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border-2 border-orange-400/40 shadow-2xl hover:shadow-orange-500/10 transition-all duration-700 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-400/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            {/* === CAREER IMPACT === */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,168,80,0.6), transparent)' }}></div>
+                <div className="flex items-center gap-4 px-8 py-4 rounded-2xl border-2 shadow-xl" style={{ backgroundColor: 'rgba(255,168,80,0.1)', borderColor: 'rgba(255,168,80,0.3)' }}>
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#FFA850' }}>
+                    <TrendingUp className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl font-black uppercase tracking-wider" style={{ color: '#FFA850' }}>{t('results.careerImpact')}</span>
+                </div>
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,168,80,0.6), transparent)' }}></div>
+              </div>
               
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+            <section className="group relative aura-card aura-hover-lift overflow-hidden shadow-2xl">
+              {/* Subtle background patterns */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-aura-coral/10 to-transparent rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-aura-violeta/10 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-10 lg:p-12">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-12">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-xl ring-4 ring-orange-400/20 group-hover:ring-orange-400/40 group-hover:scale-105 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                      <TrendingUp className="w-12 h-12 text-white relative z-10" />
+                    <div className="w-28 h-28 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-orange-500/30 group-hover:ring-orange-500/50 group-hover:scale-105 transition-all duration-500"
+                         style={{ background: 'linear-gradient(135deg, #FFA850, #8850E2)' }}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                      <TrendingUp className="w-14 h-14 text-white relative z-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full animate-pulse shadow-xl"
+                         style={{ backgroundColor: '#8850E2' }}></div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">{t('results.careerImpact')}</h2>
-                      <div className="hidden sm:flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-full border border-orange-400/30">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                        <span className="text-orange-200 text-sm font-medium">{t('results.personalGains')}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                      <h2 className="aura-heading text-4xl lg:text-6xl tracking-tight">{t('results.careerImpact')}</h2>
+                      <div className="aura-glass px-4 py-2 rounded-full flex items-center gap-2" style={{ backgroundColor: 'rgba(255,168,80,0.1)', border: '2px solid rgba(255,168,80,0.3)' }}>
+                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#FFA850' }}></div>
+                        <span className="aura-text-primary text-sm font-bold">{t('results.personalGains')}</span>
                       </div>
                     </div>
-                    <p className="text-lg text-orange-200 leading-relaxed">{t('results.careerAdvancement')}</p>
+                    <p className="aura-text-secondary text-lg leading-relaxed">{t('results.careerAdvancement')}</p>
                   </div>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/15 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-yellow-500/5 rounded-2xl"></div>
+                <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-aura-coral/5 via-transparent to-aura-violeta/5 rounded-3xl"></div>
                   <div className="relative z-10">
-                    <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-                      <div className="group/card bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:from-blue-500/15 hover:to-blue-600/10 border border-blue-500/30 hover:border-blue-400/50 rounded-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg group-hover/card:scale-110 transition-transform duration-300">
-                            <Clock className="w-5 h-5 text-white" />
+                    <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
+                      <div className="group/card aura-glass aura-hover-lift rounded-2xl p-8 lg:p-10 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                            <Clock className="w-7 h-7 text-white relative z-10" />
                           </div>
-                          <h3 className="text-blue-200 font-bold text-sm uppercase tracking-wider">{t('results.personalProductivity')}</h3>
+                          <h3 className="aura-text-primary font-bold text-sm uppercase tracking-wider">{t('results.personalProductivity')}</h3>
                         </div>
-                        <p className="text-white text-lg lg:text-xl font-semibold leading-tight mb-2">{reportData.career_impact.personal_productivity}</p>
-                        <div className="w-full bg-blue-500/20 rounded-full h-2 mt-4">
-                          <div className="bg-gradient-to-r from-blue-400 to-blue-500 h-2 rounded-full w-4/5 shadow-sm"></div>
+                        <p className="aura-text-primary text-lg lg:text-xl font-medium leading-relaxed mb-4">{reportData.career_impact.personal_productivity}</p>
+                        <div className="aura-progress h-3">
+                          <div className="aura-progress-bar h-3 w-4/5 aura-progress-wave"></div>
                         </div>
                       </div>
                       
-                      <div className="group/card bg-gradient-to-br from-green-500/10 to-green-600/5 hover:from-green-500/15 hover:to-green-600/10 border border-green-500/30 hover:border-green-400/50 rounded-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center shadow-lg group-hover/card:scale-110 transition-transform duration-300">
-                            <Target className="w-5 h-5 text-white" />
+                      <div className="group/card aura-glass aura-hover-lift rounded-2xl p-8 lg:p-10 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                            <Target className="w-7 h-7 text-white relative z-10" />
                           </div>
-                          <h3 className="text-green-200 font-bold text-sm uppercase tracking-wider">{t('results.teamPerformance')}</h3>
+                          <h3 className="aura-text-primary font-bold text-sm uppercase tracking-wider">{t('results.teamPerformance')}</h3>
                         </div>
-                        <p className="text-white text-lg lg:text-xl font-semibold leading-tight mb-2">{reportData.career_impact.team_performance}</p>
-                        <div className="w-full bg-green-500/20 rounded-full h-2 mt-4">
-                          <div className="bg-gradient-to-r from-green-400 to-green-500 h-2 rounded-full w-3/4 shadow-sm"></div>
+                        <p className="aura-text-primary text-lg lg:text-xl font-medium leading-relaxed mb-4">{reportData.career_impact.team_performance}</p>
+                        <div className="aura-progress h-3">
+                          <div className="aura-progress-bar h-3 w-3/4 aura-progress-wave"></div>
                         </div>
                       </div>
                       
-                      <div className="group/card bg-gradient-to-br from-purple-500/10 to-purple-600/5 hover:from-purple-500/15 hover:to-purple-600/10 border border-purple-500/30 hover:border-purple-400/50 rounded-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg group-hover/card:scale-110 transition-transform duration-300">
-                            <TrendingUp className="w-5 h-5 text-white" />
+                      <div className="group/card aura-glass aura-hover-lift rounded-2xl p-8 lg:p-10 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover/card:scale-110 transition-transform duration-300"
+                               style={{ background: 'linear-gradient(135deg, #8850E2, #A855F7)' }}>
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                            <TrendingUp className="w-7 h-7 text-white relative z-10" />
                           </div>
-                          <h3 className="text-purple-200 font-bold text-sm uppercase tracking-wider">{t('results.leadershipRecognition')}</h3>
+                          <h3 className="aura-text-primary font-bold text-sm uppercase tracking-wider">{t('results.leadershipRecognition')}</h3>
                         </div>
-                        <p className="text-white text-lg lg:text-xl font-semibold leading-tight mb-2">{reportData.career_impact.leadership_recognition}</p>
-                        <div className="w-full bg-purple-500/20 rounded-full h-2 mt-4">
-                          <div className="bg-gradient-to-r from-purple-400 to-purple-500 h-2 rounded-full w-5/6 shadow-sm"></div>
+                        <p className="aura-text-primary text-lg lg:text-xl font-medium leading-relaxed mb-4">{reportData.career_impact.leadership_recognition}</p>
+                        <div className="aura-progress h-3">
+                          <div className="aura-progress-bar h-3 w-5/6 aura-progress-wave"></div>
                         </div>
                       </div>
                       
-                      <div className="group/card bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:from-yellow-500/15 hover:to-yellow-600/10 border border-yellow-500/30 hover:border-yellow-400/50 rounded-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/10 hover:-translate-y-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg group-hover/card:scale-110 transition-transform duration-300">
-                            <Lightbulb className="w-5 h-5 text-white" />
+                      <div className="group/card aura-glass aura-hover-lift rounded-2xl p-8 lg:p-10 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover/card:scale-110 transition-transform duration-300"
+                               style={{ background: 'linear-gradient(135deg, #FFA850, #F59E0B)' }}>
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                            <Lightbulb className="w-7 h-7 text-white relative z-10" />
                           </div>
-                          <h3 className="text-yellow-200 font-bold text-sm uppercase tracking-wider">{t('results.professionalGrowth')}</h3>
+                          <h3 className="aura-text-primary font-bold text-sm uppercase tracking-wider">{t('results.professionalGrowth')}</h3>
                         </div>
-                        <p className="text-white text-lg lg:text-xl font-semibold leading-tight mb-2">{reportData.career_impact.professional_growth}</p>
-                        <div className="w-full bg-yellow-500/20 rounded-full h-2 mt-4">
-                          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2 rounded-full w-4/5 shadow-sm"></div>
+                        <p className="aura-text-primary text-lg lg:text-xl font-medium leading-relaxed mb-4">{reportData.career_impact.professional_growth}</p>
+                        <div className="aura-progress h-3">
+                          <div className="aura-progress-bar h-3 w-4/5 aura-progress-wave"></div>
                         </div>
                       </div>
                     </div>
@@ -469,55 +580,66 @@ function ResultsPageContent() {
                 </div>
               </div>
             </section>
+            </div>
 
-            {/* Quick Wins Section */}
-            <section className="group relative bg-gradient-to-br from-green-500/20 to-emerald-600/15 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border-2 border-green-400/40 shadow-2xl hover:shadow-green-500/10 transition-all duration-700 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-green-400/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            {/* === QUICK WINS === */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-green-500/60 to-transparent rounded-full"></div>
+                <div className="flex items-center gap-4 px-8 py-4 bg-green-500/10 rounded-2xl border-2 border-green-500/30 shadow-xl">
+                  <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Lightbulb className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl text-green-700 font-black uppercase tracking-wider">{t('results.quickWins')}</span>
+                </div>
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-green-500/60 to-transparent rounded-full"></div>
+              </div>
               
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+            <section className="group relative aura-card aura-hover-lift overflow-hidden shadow-2xl">
+              {/* Subtle background patterns */}
+              <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-green-500/10 to-transparent rounded-full blur-3xl"></div>
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-10 lg:p-12">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-12">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center shadow-xl ring-4 ring-green-400/20 group-hover:ring-green-400/40 group-hover:scale-105 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                      <Lightbulb className="w-12 h-12 text-white relative z-10" />
+                    <div className="w-28 h-28 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-green-400/30 group-hover:ring-green-400/50 group-hover:scale-105 transition-all duration-500">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                      <Lightbulb className="w-14 h-14 text-white relative z-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="absolute -top-3 -right-3 w-8 h-8 bg-emerald-400 rounded-full animate-pulse shadow-xl"></div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">{t('results.quickWins')}</h2>
-                      <div className="hidden sm:flex items-center gap-2 bg-green-500/20 px-4 py-2 rounded-full border border-green-400/30">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-green-200 text-sm font-medium">{t('results.immediateActions')}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                      <h2 className="aura-heading text-4xl lg:text-6xl tracking-tight">{t('results.quickWins')}</h2>
+                      <div className="aura-glass-selected px-4 py-2 rounded-full flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="aura-text-primary text-sm font-bold">{t('results.immediateActions')}</span>
                       </div>
                     </div>
-                    <p className="text-lg text-green-200 leading-relaxed">{t('results.fastWins')}</p>
+                    <p className="aura-text-secondary text-lg leading-relaxed">{t('results.fastWins')}</p>
                   </div>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/15 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 rounded-2xl"></div>
+                <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 rounded-3xl"></div>
                   <div className="relative z-10">
                     {/* Month 1 Actions */}
-                    <div className="mb-12">
-                      <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">1</span>
-                        </div>
+                    <div className="mb-16">
+                      <h3 className="aura-heading text-3xl mb-8">
                         {t('results.month1Actions')}
                       </h3>
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid md:grid-cols-2 gap-8">
                         {reportData.quick_wins.month_1_actions.map((action, index) => (
-                          <div key={index} className="group/action bg-gradient-to-br from-green-500/10 to-emerald-600/5 hover:from-green-500/15 hover:to-emerald-600/10 border border-green-500/30 hover:border-green-400/50 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
-                            <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center shadow-lg group-hover/action:scale-110 transition-transform duration-300 flex-shrink-0">
-                                <span className="text-white font-bold text-lg">{index + 1}</span>
+                          <div key={index} className="group/action aura-glass aura-hover-lift rounded-2xl p-8 transition-all duration-300">
+                            <div className="flex items-start gap-6">
+                              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/action:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                                <span className="text-white font-black text-xl relative z-10">{index + 1}</span>
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-white font-bold text-lg leading-tight mb-2">{action.action}</h4>
-                                <p className="text-green-200 text-sm leading-relaxed">{action.impact}</p>
+                                <h4 className="aura-heading text-xl leading-tight mb-3">{action.action}</h4>
+                                <p className="aura-text-secondary leading-relaxed">{action.impact}</p>
                               </div>
                             </div>
                           </div>
@@ -527,22 +649,20 @@ function ResultsPageContent() {
 
                     {/* Quarter 1 Goals */}
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">Q1</span>
-                        </div>
+                      <h3 className="aura-heading text-3xl mb-8">
                         {t('results.quarter1Goals')}
                       </h3>
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid md:grid-cols-2 gap-8">
                         {reportData.quick_wins.quarter_1_goals.map((goal, index) => (
-                          <div key={index} className="group/goal bg-gradient-to-br from-emerald-500/10 to-green-600/5 hover:from-emerald-500/15 hover:to-green-600/10 border border-emerald-500/30 hover:border-emerald-400/50 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1">
-                            <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover/goal:scale-110 transition-transform duration-300 flex-shrink-0">
-                                <Target className="w-5 h-5 text-white" />
+                          <div key={index} className="group/goal aura-glass aura-hover-lift rounded-2xl p-8 transition-all duration-300">
+                            <div className="flex items-start gap-6">
+                              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/goal:scale-110 transition-transform duration-300 flex-shrink-0">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                                <Target className="w-7 h-7 text-white relative z-10" />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-white font-bold text-lg leading-tight mb-2">{goal.goal}</h4>
-                                <p className="text-emerald-200 text-sm leading-relaxed"><strong>{t('results.outcome')}:</strong> {goal.outcome}</p>
+                                <h4 className="aura-heading text-xl leading-tight mb-3">{goal.goal}</h4>
+                                <p className="aura-text-secondary leading-relaxed"><strong className="aura-text-primary">{t('results.outcome')}:</strong> {goal.outcome}</p>
                               </div>
                             </div>
                           </div>
@@ -553,89 +673,102 @@ function ResultsPageContent() {
                 </div>
               </div>
             </section>
+            </div>
 
-            {/* Roadmap Section */}
-            <section className="group relative bg-gradient-to-br from-purple-500/20 to-violet-600/15 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border-2 border-purple-400/40 shadow-2xl hover:shadow-purple-500/10 transition-all duration-700 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-purple-400/15 via-transparent to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-1000"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-violet-400/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            {/* === IMPLEMENTATION ROADMAP === */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(136,80,226,0.6), transparent)' }}></div>
+                <div className="flex items-center gap-4 px-8 py-4 rounded-2xl border-2 shadow-xl" style={{ backgroundColor: 'rgba(136,80,226,0.1)', borderColor: 'rgba(136,80,226,0.3)' }}>
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#8850E2' }}>
+                    <Clock className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl font-black uppercase tracking-wider" style={{ color: '#8850E2' }}>{t('results.implementationRoadmap')}</span>
+                </div>
+                <div className="flex-1 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(136,80,226,0.6), transparent)' }}></div>
+              </div>
               
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+            <section className="group relative aura-card aura-hover-lift overflow-hidden shadow-2xl">
+              {/* Subtle background patterns */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-10 lg:p-12">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-12">
                   <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl ring-4 ring-purple-400/20 group-hover:ring-purple-400/40 group-hover:scale-105 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                      <Clock className="w-12 h-12 text-white relative z-10" />
+                    <div className="w-28 h-28 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-purple-500/30 group-hover:ring-purple-500/50 group-hover:scale-105 transition-all duration-500"
+                         style={{ background: 'linear-gradient(135deg, #8850E2, #A855F7)' }}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                      <Clock className="w-14 h-14 text-white relative z-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full animate-pulse shadow-xl"
+                         style={{ backgroundColor: '#A855F7' }}></div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">{t('results.implementationRoadmap')}</h2>
-                      <div className="hidden sm:flex items-center gap-2 bg-purple-500/20 px-4 py-2 rounded-full border border-purple-400/30">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                        <span className="text-purple-200 text-sm font-medium">{t('results.executionPlan')}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                      <h2 className="aura-heading text-4xl lg:text-6xl tracking-tight">{t('results.implementationRoadmap')}</h2>
+                      <div className="aura-glass px-4 py-2 rounded-full flex items-center gap-2" style={{ backgroundColor: 'rgba(136,80,226,0.1)', border: '2px solid rgba(136,80,226,0.3)' }}>
+                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#8850E2' }}></div>
+                        <span className="aura-text-primary text-sm font-bold">{t('results.executionPlan')}</span>
                       </div>
                     </div>
-                    <p className="text-lg text-purple-200 leading-relaxed">{t('results.strategicTimeline')}</p>
+                    <p className="aura-text-secondary text-lg leading-relaxed">{t('results.strategicTimeline')}</p>
                   </div>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/15 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-violet-500/5 rounded-2xl"></div>
+                <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-aura-violeta/5 via-transparent to-purple-500/5 rounded-3xl"></div>
                   <div className="relative z-10">
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                       {reportData.implementation_roadmap.map((phase, index) => (
                         <div key={index} className="group/phase relative">
                           {/* Connection line for phases */}
                           {index < reportData.implementation_roadmap.length - 1 && (
-                            <div className="absolute left-8 top-20 w-0.5 h-16 bg-gradient-to-b from-purple-400 to-purple-600 opacity-30"></div>
+                            <div className="absolute left-10 top-24 w-1 h-20 opacity-30 rounded-full"
+                                 style={{ background: 'linear-gradient(to bottom, #8850E2, #A855F7)' }}></div>
                           )}
                           
-                          <div className="bg-gradient-to-br from-purple-500/10 to-violet-600/5 hover:from-purple-500/15 hover:to-violet-600/10 border border-purple-500/30 hover:border-purple-400/50 rounded-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
-                            <div className="flex items-start gap-6">
+                          <div className="aura-glass aura-hover-lift rounded-2xl p-8 lg:p-10 transition-all duration-300">
+                            <div className="flex items-start gap-8">
                               <div className="relative flex-shrink-0">
-                                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl group-hover/phase:scale-110 transition-transform duration-300">
-                                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-                                  <span className="text-white font-black text-2xl relative z-10">{index + 1}</span>
+                                <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl group-hover/phase:scale-110 transition-transform duration-300"
+                                     style={{ background: 'linear-gradient(135deg, #8850E2, #A855F7)' }}>
+                                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"></div>
+                                  <span className="text-white font-black text-3xl relative z-10">{index + 1}</span>
                                 </div>
-                                <div className="absolute -inset-2 bg-purple-400/20 rounded-2xl blur-sm opacity-0 group-hover/phase:opacity-100 transition-opacity duration-300"></div>
                               </div>
                               
                               <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                                  <h3 className="text-white text-2xl lg:text-3xl font-bold leading-tight">{phase.phase}</h3>
-                                  <div className="flex items-center gap-3">
-                                    <div className="bg-purple-600/30 text-purple-200 px-4 py-2 rounded-full border border-purple-500/30 shadow-sm">
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4" />
-                                        <span className="text-sm font-bold">{phase.duration}</span>
-                                      </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
+                                  <h3 className="aura-heading text-3xl lg:text-4xl leading-tight">{phase.phase}</h3>
+                                  <div className="flex items-center gap-4">
+                                    <div className="aura-glass px-4 py-2 rounded-full flex items-center gap-2" style={{ backgroundColor: 'rgba(136,80,226,0.1)', border: '2px solid rgba(136,80,226,0.3)' }}>
+                                      <Clock className="w-5 h-5" style={{ color: '#8850E2' }} />
+                                      <span className="aura-text-primary text-sm font-bold">{phase.duration}</span>
                                     </div>
-                                    <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse shadow-lg"></div>
+                                    <div className="w-4 h-4 rounded-full animate-pulse shadow-lg"
+                                         style={{ backgroundColor: '#8850E2' }}></div>
                                   </div>
                                 </div>
                                 
-                                <p className="text-purple-100 text-lg lg:text-xl font-medium leading-relaxed mb-4">{phase.description}</p>
+                                <p className="aura-text-primary text-xl lg:text-2xl font-medium leading-relaxed mb-6">{phase.description}</p>
                                 
                                 {/* Career Benefit */}
-                                <div className="bg-purple-600/20 border border-purple-500/30 rounded-xl p-4 mb-4">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <TrendingUp className="w-4 h-4 text-purple-300" />
-                                    <span className="text-purple-200 text-sm font-bold uppercase tracking-wider">{t('results.careerBenefit')}</span>
+                                <div className="aura-glass rounded-2xl p-6 mb-6" style={{ backgroundColor: 'rgba(136,80,226,0.1)', border: '2px solid rgba(136,80,226,0.3)' }}>
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <TrendingUp className="w-5 h-5" style={{ color: '#8850E2' }} />
+                                    <span className="aura-text-primary text-sm font-bold uppercase tracking-wider">{t('results.careerBenefit')}</span>
                                   </div>
-                                  <p className="text-white font-medium leading-relaxed">{phase.career_benefit}</p>
+                                  <p className="aura-text-primary font-medium leading-relaxed text-lg">{phase.career_benefit}</p>
                                 </div>
                                 
                                 {/* Progress indicator */}
-                                <div className="w-full bg-purple-500/20 rounded-full h-2 relative overflow-hidden">
-                                  <div className="bg-gradient-to-r from-purple-400 to-purple-500 h-2 rounded-full shadow-sm transition-all duration-1000 delay-300"
+                                <div className="aura-progress h-3 mb-3">
+                                  <div className="aura-progress-bar h-3 aura-progress-wave transition-all duration-1000 delay-300"
                                        style={{ width: index === 0 ? '95%' : index === 1 ? '60%' : '25%' }}>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent rounded-full"></div>
                                   </div>
                                 </div>
-                                <div className="flex justify-between text-xs text-purple-300 mt-2">
+                                <div className="flex justify-between text-sm aura-text-secondary">
                                   <span>{t('results.start')}</span>
                                   <span>{index === 0 ? t('results.readyToBegin') : index === 1 ? t('results.moderateComplexity') : t('results.longTermVision')}</span>
                                 </div>
@@ -647,45 +780,38 @@ function ResultsPageContent() {
                     </div>
                     
                     {/* Timeline Summary */}
-                    <div className="mt-10 pt-8 border-t border-purple-500/20">
-                      <div className="bg-gradient-to-r from-purple-500/15 to-violet-500/15 rounded-2xl p-6 lg:p-8 border border-purple-400/30">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="mt-12 pt-10 border-t border-gray-200">
+                      <div className="aura-glass rounded-3xl p-8 lg:p-10" style={{ backgroundColor: 'rgba(136,80,226,0.1)', border: '2px solid rgba(136,80,226,0.3)' }}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                           <div>
-                            <h4 className="text-purple-200 font-bold text-lg mb-1">{t('results.totalImplementationTimeline')}</h4>
-                            <p className="text-purple-300 text-sm opacity-75">{t('results.fromAssessmentToDeployment')}</p>
+                            <h4 className="aura-heading text-2xl mb-2">{t('results.timeToFirstResults')}</h4>
+                            <p className="aura-text-secondary">{t('results.whenYouWillSeeResults')}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-white text-3xl lg:text-4xl font-black">
+                            <p className="aura-text-glow text-4xl lg:text-5xl font-black mb-2">
                               {(() => {
-                                // Calculate total duration in months with fallback
-                                let totalMonths = 0;
-                                reportData.implementation_roadmap.forEach(phase => {
-                                  const duration = phase.duration.toLowerCase();
-                                  if (duration.includes('week')) {
+                                // Calculate first phase duration for first results
+                                if (reportData.implementation_roadmap.length > 0) {
+                                  const firstPhase = reportData.implementation_roadmap[0];
+                                  const duration = firstPhase.duration.toLowerCase();
+                                  if (duration.includes('semana')) {
                                     const match = duration.match(/(\d+)/);
                                     if (match) {
-                                      const weeks = parseInt(match[1]);
-                                      totalMonths += weeks / 4;
+                                      return parseInt(match[1]);
                                     }
-                                  } else if (duration.includes('month')) {
+                                  } else if (duration.includes('week')) {
                                     const match = duration.match(/(\d+)/);
                                     if (match) {
-                                      const months = parseInt(match[1]);
-                                      totalMonths += months;
+                                      return parseInt(match[1]);
                                     }
                                   }
-                                });
-                                
-                                // Fallback to realistic timeline if calculation fails
-                                if (isNaN(totalMonths) || totalMonths === 0) {
-                                  totalMonths = 2.5; // 10 weeks = 2.5 months
                                 }
-                                
-                                return `${Math.ceil(totalMonths)}`;
+                                // Fallback to 8 weeks for first results
+                                return '8';
                               })()}
                             </p>
-                            <p className="text-white text-xl font-bold mb-1">{t('results.months')}</p>
-                            <p className="text-purple-200 text-sm">{t('results.completeTransformation')}</p>
+                            <p className="aura-heading text-2xl mb-1">{t('results.weeks')}</p>
+                            <p className="aura-text-secondary">{t('results.firstMeasurableResults')}</p>
                           </div>
                         </div>
                       </div>
@@ -694,28 +820,46 @@ function ResultsPageContent() {
                 </div>
               </div>
             </section>
+            </div>
           </div>
         ) : result.aiReport ? (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">Legacy Report Format</h3>
-              <p className="text-blue-200 mb-6">
-                This report was generated in an older format. Please contact support for an updated version.
-              </p>
-              <div className="bg-black/20 rounded-xl p-6 text-left">
-                <pre className="text-blue-100 text-sm whitespace-pre-wrap overflow-auto">{result.aiReport}</pre>
+          // Show premium design even for non-JSON reports
+          <div className="executive-report-dashboard max-w-7xl mx-auto space-y-20">
+            {/* Simple Premium Report for any content */}
+            <div className="mb-20">
+              <div className="flex items-center gap-6 mb-10">
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent rounded-full"></div>
+                <div className="flex items-center gap-4 px-8 py-4 bg-blue-500/10 rounded-2xl border-2 border-blue-500/30 shadow-xl">
+                  <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <CheckCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="aura-heading text-xl text-blue-700 font-black uppercase tracking-wider">{t('results.aiAnalysisReport')}</span>
+                </div>
+                <div className="flex-1 h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent rounded-full"></div>
               </div>
+              
+              <section className="aura-card aura-hover-lift overflow-hidden shadow-2xl">
+                <div className="relative z-10 p-10 lg:p-12">
+                  <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <div className="prose prose-lg max-w-none">
+                        <pre className="aura-text-primary text-base whitespace-pre-wrap leading-relaxed font-medium">{result.aiReport}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">Report Generation</h3>
-              <p className="text-blue-200 mb-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="aura-card p-10 text-center">
+              <h3 className="aura-heading text-3xl mb-6">Report Generation</h3>
+              <p className="aura-text-secondary text-lg mb-8">
                 Your personalized AI strategy report will be generated and emailed to you within the next few minutes.
               </p>
-              <div className="flex items-center justify-center gap-2 text-blue-300">
-                <Mail className="w-5 h-5" />
+              <div className="flex items-center justify-center gap-3 aura-text-primary text-lg">
+                <Mail className="w-6 h-6 aura-icon" />
                 <span>Check your email at: {result.email}</span>
               </div>
             </div>
@@ -723,84 +867,88 @@ function ResultsPageContent() {
         )}
 
         {/* Premium CTA Section */}
-        <div className="max-w-5xl mx-auto mt-32">
-          <div className="bg-gradient-to-br from-blue-600/25 to-purple-600/25 backdrop-blur-sm rounded-3xl p-10 border border-white/30 relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-gradient-to-b from-white/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="max-w-6xl mx-auto mt-24">
+          <div className="aura-card p-12 lg:p-16 relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-64 h-64 bg-gradient-to-b from-aura-coral/20 to-transparent rounded-full blur-3xl"></div>
             
             <div className="relative z-10 text-center">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full px-4 py-2 text-white text-sm font-semibold mb-6">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <div className="aura-glass-selected rounded-full px-6 py-3 text-sm font-bold mb-8 inline-flex items-center gap-3">
+                <div className="w-3 h-3 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
                 {t('results.executiveStrategySession')}
               </div>
               
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
+              <h3 className="aura-heading text-4xl md:text-5xl lg:text-6xl mb-8 leading-tight">
                 {t('results.becomeTheAiChampion')}
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{t('results.yourTeamNeeds')}</span>
+                <span className="aura-text-glow">{t('results.yourTeamNeeds')}</span>
               </h3>
               
-              <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed"
+              <p className="aura-body text-xl mb-12 max-w-4xl mx-auto leading-relaxed"
                  dangerouslySetInnerHTML={{
                    __html: t('results.assessmentRevealsPath', { company: result.company })
                  }}>
               </p>
               
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Target className="w-6 h-6 text-blue-400" />
+              <div className="grid md:grid-cols-3 gap-8 mb-12">
+                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl"
+                       style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)' }}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                    <Target className="w-8 h-8 text-white relative z-10" />
                   </div>
-                  <h4 className="text-white font-bold mb-2">Department Roadmap</h4>
-                  <p className="text-blue-200 text-sm">{t('results.departmentPlan')}</p>
+                  <h4 className="aura-heading text-lg mb-3">{t('results.departmentRoadmap')}</h4>
+                  <p className="aura-text-secondary">{t('results.departmentPlan')}</p>
                 </div>
                 
-                <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Lightbulb className="w-6 h-6 text-purple-400" />
+                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl"
+                       style={{ background: 'linear-gradient(135deg, #8850E2, #A855F7)' }}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                    <Lightbulb className="w-8 h-8 text-white relative z-10" />
                   </div>
-                  <h4 className="text-white font-bold mb-2">Career Positioning</h4>
-                  <p className="text-blue-200 text-sm">{t('results.aiExpertStatus')}</p>
+                  <h4 className="aura-heading text-lg mb-3">{t('results.careerPositioning')}</h4>
+                  <p className="aura-text-secondary">{t('results.aiExpertStatus')}</p>
                 </div>
                 
-                <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="w-6 h-6 text-green-400" />
+                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                    <TrendingUp className="w-8 h-8 text-white relative z-10" />
                   </div>
-                  <h4 className="text-white font-bold mb-2">Leadership Recognition</h4>
-                  <p className="text-blue-200 text-sm">{t('results.careerStrategies')}</p>
+                  <h4 className="aura-heading text-lg mb-3">{t('results.leadershipRecognition')}</h4>
+                  <p className="aura-text-secondary">{t('results.careerStrategies')}</p>
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
                 <a 
                   href={`mailto:contact@yourcompany.com?subject=Executive AI Strategy Consultation - ${encodeURIComponent(result.company)}&body=${encodeURIComponent('Hi, I just completed the AI readiness assessment and scored ' + result.score + '/100. I\'d like to schedule a 30-minute executive consultation to discuss our AI transformation strategy.')}`}
-                  className="group relative overflow-hidden inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-5 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                  className="aura-button aura-button-primary text-lg px-12 py-4 aura-hover-lift"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <Mail className="w-6 h-6 relative z-10" />
-                  <span className="relative z-10">Schedule AI Champion Consultation</span>
+                  <Mail className="w-6 h-6" />
+                  <span>{t('results.scheduleConsultation')}</span>
                 </a>
                 
                 <button 
                   onClick={() => window.print()}
-                  className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white px-10 py-5 rounded-2xl text-lg font-bold transition-all duration-300 border border-white/30 hover:border-white/50"
+                  className="aura-button aura-button-secondary text-lg px-12 py-4 aura-hover-lift"
                 >
                   <Download className="w-6 h-6" />
                   {t('results.downloadFullReportPdf')}
                 </button>
               </div>
               
-              <div className="flex items-center justify-center gap-6 text-blue-300 text-sm">
+              <div className="flex items-center justify-center flex-wrap gap-8 aura-text-secondary text-sm">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                   <span>{t('results.thirtyMinuteConsultation')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                   <span>{t('results.noObligation')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                   <span>{t('results.seniorConsultant')}</span>
                 </div>
               </div>
@@ -809,10 +957,10 @@ function ResultsPageContent() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-blue-300 hover:text-white transition-colors duration-200"
+            className="aura-text-secondary hover:aura-text-primary transition-colors duration-200 text-lg font-medium"
           >
             {t('results.backToHome')}
           </Link>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
+import "@/styles/aura-theme.css";
 import { LanguageProvider } from "@/lib/i18n";
 
 const geistSans = Geist({

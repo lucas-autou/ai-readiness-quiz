@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizResponseById } from '@/lib/supabase';
-import { getAIReport } from '@/lib/reportStore';
+import { getAIReport, getMockQuizResponse } from '@/lib/reportStore';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +14,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get quiz response by ID
-    const result = await getQuizResponseById(id);
+    // Get quiz response by ID from database or mock store
+    let result = await getQuizResponseById(id);
+    
+    // If not found in database, try the mock store (for local development)
+    if (!result) {
+      console.log('🔍 Trying mock database for ID:', id);
+      result = getMockQuizResponse(id);
+    }
 
     if (!result) {
       return NextResponse.json(

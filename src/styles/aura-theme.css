@@ -1,147 +1,736 @@
-/* Aura Visual Identity Theme */
+/* Aura Brand System - Clean & Modern Design */
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Aura Color Palette */
-  --aura-coral: #EC4E20;
-  --aura-coral-light: #FF6B47;
-  --aura-coral-dark: #D63C14;
-  --aura-orange: #FF5722;
-  --aura-red-cinnabar: #E34234;
-  --aura-purple: #8B5CF6;
-  --aura-violet: #A855F7;
-  --aura-neutral-50: #FAFAFA;
-  --aura-neutral-100: #F5F5F5;
-  --aura-neutral-200: #E5E5E5;
-  --aura-neutral-800: #262626;
-  --aura-neutral-900: #171717;
+  /* === AURA CORE BRAND COLORS === */
+  --aura-vermelho-cinnabar: #EC4E22;
+  --aura-coral: #FFA850;
+  --aura-violeta: #8850E2;
+  
+  /* Color variations */
+  --aura-cinnabar-light: #F86B47;
+  --aura-cinnabar-dark: #D63C14;
+  --aura-coral-light: #FFB366;
+  --aura-coral-dark: #E8963A;
+  --aura-violet-light: #A663F7;
+  --aura-violet-dark: #6B3CC9;
+  
+  /* === AURA NEUTRALS === */
+  --aura-white: #FFFFFF;
+  --aura-cream: #FDF8F5;
+  --aura-light-gray: #F8F9FA;
+  --aura-medium-gray: #64748B;
+  --aura-dark-gray: #334155;
+  --aura-black: #0F172A;
+  
+  /* === AURA GRADIENTS === */
+  --aura-gradient-warm: linear-gradient(135deg, var(--aura-cream) 0%, var(--aura-light-gray) 100%);
+  --aura-gradient-primary: linear-gradient(135deg, var(--aura-vermelho-cinnabar) 0%, var(--aura-coral) 100%);
+  --aura-gradient-secondary: linear-gradient(135deg, var(--aura-violeta) 0%, var(--aura-violet-light) 100%);
+  --aura-gradient-card: rgba(255,255,255,0.95);
+  --aura-gradient-card-hover: rgba(255,255,255,0.98);
+  
+  /* === SHADOW SYSTEM === */
+  --aura-shadow-xs: 0 2px 4px rgba(0,0,0,0.02);
+  --aura-shadow-sm: 0 4px 8px rgba(0,0,0,0.04);
+  --aura-shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+  --aura-shadow-lg: 0 16px 48px rgba(0,0,0,0.08);
+  --aura-shadow-xl: 0 24px 64px rgba(0,0,0,0.12);
+  --aura-shadow-glow: 0 12px 32px rgba(236,78,34,0.25);
+  --aura-shadow-violet-glow: 0 12px 32px rgba(136,80,226,0.25);
+  
+  /* === BORDER RADIUS SYSTEM === */
+  --aura-radius-xs: 8px;
+  --aura-radius-sm: 12px;
+  --aura-radius-md: 16px;
+  --aura-radius-lg: 20px;
+  --aura-radius-xl: 24px;
+  --aura-radius-2xl: 32px;
+  --aura-radius-3xl: 40px;
+  --aura-radius-organic: 32px 40px 32px 40px;
+  --aura-radius-organic-alt: 40px 32px 40px 32px;
+  
+  /* === SPACING SYSTEM === */
+  --aura-space-xs: 4px;
+  --aura-space-sm: 8px;
+  --aura-space-md: 16px;
+  --aura-space-lg: 24px;
+  --aura-space-xl: 32px;
+  --aura-space-2xl: 48px;
+  --aura-space-3xl: 64px;
+  
+  /* === AURA TYPOGRAPHY SYSTEM === */
+  --aura-font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --aura-font-light: 300;
+  --aura-font-normal: 400;
+  --aura-font-medium: 500;
+  --aura-font-semibold: 600;
+  --aura-font-bold: 700;
+  --aura-font-extrabold: 800;
+  --aura-font-black: 900;
+  
+  /* === ANIMATION TIMING === */
+  --aura-timing-fast: 150ms;
+  --aura-timing-normal: 300ms;
+  --aura-timing-slow: 500ms;
+  --aura-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --aura-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --aura-ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
-.aura-theme {
-  /* Background Gradients */
-  --bg-primary: linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%);
-  --bg-card: linear-gradient(135deg, #FFFFFF 0%, #FAFAFA 100%);
-  --bg-coral-gradient: linear-gradient(135deg, var(--aura-coral) 0%, var(--aura-coral-light) 100%);
-  --bg-purple-gradient: linear-gradient(135deg, var(--aura-purple) 0%, var(--aura-violet) 100%);
-  
-  /* Shadows */
-  --shadow-soft: 0 4px 24px rgba(236, 78, 32, 0.08);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.06);
-  --shadow-hover: 0 12px 40px rgba(236, 78, 32, 0.15);
-  
-  /* Border Radius */
-  --radius-card: 24px;
-  --radius-button: 16px;
-  --radius-small: 12px;
+/* === ENHANCED COMPONENT SYSTEM === */
+
+/* === BASE UTILITIES === */
+.aura-font {
+  font-family: var(--aura-font-family);
 }
 
-/* Theme Components */
+.aura-background {
+  background: var(--aura-gradient-warm);
+  font-family: var(--aura-font-family);
+  min-height: 100vh;
+}
+
+/* === CARD SYSTEM === */
 .aura-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(236, 78, 32, 0.08);
+  background: var(--aura-gradient-card);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  border: 1px solid rgba(255,255,255,0.8);
+  transition: all 300ms ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .aura-card:hover {
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+  background: var(--aura-gradient-card-hover);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transform: translateY(-4px);
+}
+
+.aura-card-alt {
+  border-radius: var(--aura-radius-organic-alt);
+}
+
+.aura-card-selected {
+  background: rgba(236,78,34,0.1);
+  border: 2px solid var(--aura-vermelho-cinnabar);
+  box-shadow: 0 8px 32px rgba(236,78,34,0.2);
+  backdrop-filter: blur(20px);
+}
+
+/* === BUTTON SYSTEM === */
+.aura-button {
+  font-family: var(--aura-font-family);
+  font-weight: var(--aura-font-weight-semibold);
+  border: none;
+  cursor: pointer;
+  transition: all var(--aura-timing-normal) var(--aura-ease);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--aura-space-sm);
+  text-decoration: none;
 }
 
 .aura-button-primary {
-  background: var(--bg-coral-gradient);
-  color: white;
-  border-radius: var(--radius-button);
+  background: var(--aura-gradient-primary);
+  color: var(--aura-white);
+  border-radius: 20px;
   padding: 16px 32px;
-  font-weight: 600;
   font-size: 18px;
-  transition: all 0.3s ease;
-  border: none;
-  box-shadow: var(--shadow-soft);
+  font-weight: var(--aura-font-semibold);
+  box-shadow: 0 8px 24px rgba(236,78,34,0.25);
 }
 
 .aura-button-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(236,78,34,0.4);
 }
 
+.aura-button-secondary {
+  background: rgba(255,255,255,0.6);
+  color: var(--aura-medium-gray);
+  border-radius: var(--aura-radius-md);
+  padding: var(--aura-space-sm) var(--aura-space-md);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.aura-button-secondary:hover {
+  background: rgba(255,255,255,0.8);
+  color: var(--aura-dark-gray);
+  transform: scale(1.05);
+}
+
+.aura-button-violet {
+  background: var(--aura-gradient-violet);
+  color: var(--aura-white);
+  box-shadow: var(--aura-shadow-violet-glow);
+}
+
+/* === TEXT SYSTEM === */
 .aura-text-primary {
-  color: var(--aura-neutral-900);
+  color: var(--aura-dark-gray);
 }
 
 .aura-text-secondary {
-  color: var(--aura-neutral-800);
+  color: var(--aura-medium-gray);
+}
+
+.aura-text-cinnabar {
+  color: var(--aura-vermelho-cinnabar);
 }
 
 .aura-text-coral {
   color: var(--aura-coral);
 }
 
-.aura-bg-coral {
-  background: var(--aura-coral);
+.aura-text-violet {
+  color: var(--aura-violeta);
 }
 
-.aura-bg-gradient {
-  background: var(--bg-primary);
-}
-
-/* Typography */
 .aura-heading {
-  font-weight: 700;
-  color: var(--aura-neutral-900);
+  font-family: var(--aura-font-family);
+  font-weight: var(--aura-font-bold);
+  color: var(--aura-dark-gray);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.aura-subheading {
+  font-family: var(--aura-font-family);
+  font-weight: var(--aura-font-weight-semibold);
+  color: var(--aura-dark-gray);
   line-height: 1.2;
 }
 
 .aura-body {
-  color: var(--aura-neutral-800);
+  font-family: var(--aura-font-family);
+  color: var(--aura-medium-gray);
   line-height: 1.6;
 }
 
-/* Figma Font Reference (Figtree) */
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
-
-.aura-font {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+/* === INPUT SYSTEM === */
+.aura-input {
+  font-family: var(--aura-font-family);
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 12px 16px;
+  color: var(--aura-dark-gray);
+  transition: all 300ms ease;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* Organic shapes and illustrations */
-.aura-organic-bg {
+.aura-input:focus {
+  outline: none;
+  border-color: var(--aura-vermelho-cinnabar);
+  box-shadow: 0 0 0 3px rgba(236,78,34,0.15), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* === GLASSMORPHISM ELEMENTS === */
+.aura-glass {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+.aura-glass-selected {
+  background: rgba(236,78,34,0.1);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--aura-vermelho-cinnabar);
+  box-shadow: 0 8px 32px rgba(236,78,34,0.2);
+}
+
+.aura-glass-coral {
+  background: rgba(255,168,80,0.1);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--aura-coral);
+  box-shadow: 0 8px 32px rgba(255,168,80,0.2);
+}
+
+.aura-glass-violet {
+  background: rgba(136,80,226,0.1);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--aura-violeta);
+  box-shadow: 0 8px 32px rgba(136,80,226,0.2);
+}
+
+/* === ANIMATIONS === */
+@keyframes aura-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(5deg); }
+  66% { transform: translateY(5px) rotate(-3deg); }
+}
+
+@keyframes aura-pulse-glow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes aura-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.aura-shimmer {
   position: relative;
   overflow: hidden;
 }
 
-.aura-organic-bg::before {
+.aura-shimmer::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, rgba(236, 78, 32, 0.1) 0%, rgba(255, 107, 71, 0.05) 100%);
-  border-radius: 50% 30% 70% 40%;
-  transform: rotate(45deg);
-  z-index: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: aura-shimmer 2s ease-in-out infinite;
 }
 
-/* Coral accent elements */
-.aura-accent-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--aura-coral);
-  border-radius: 50%;
-  display: inline-block;
+/* === PROGRESS SYSTEM === */
+.aura-progress {
+  background: rgba(255,255,255,0.8);
+  border-radius: var(--aura-radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.aura-stats-card {
-  background: linear-gradient(135deg, var(--aura-coral) 0%, var(--aura-red-cinnabar) 100%);
-  color: white;
-  border-radius: var(--radius-card);
-  padding: 24px;
-  box-shadow: var(--shadow-soft);
+.aura-progress-bar {
+  background: linear-gradient(90deg, #EC4E22 0%, #FFA850 50%, #8850E2 100%);
+  transition: width var(--aura-timing-slow) var(--aura-ease-out);
+  position: relative;
+  border-radius: var(--aura-radius-sm);
+  box-shadow: 0 12px 32px rgba(236,78,34,0.25);
 }
 
-.aura-stats-purple {
-  background: var(--bg-purple-gradient);
-  color: white;
+.aura-progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+  animation: aura-shimmer 3s ease-in-out infinite;
+}
+
+/* === ICON SYSTEM === */
+.aura-icon {
+  color: var(--aura-cinnabar);
+  transition: all var(--aura-timing-normal) var(--aura-ease);
+}
+
+.aura-icon--coral {
+  color: var(--aura-coral);
+}
+
+.aura-icon--violet {
+  color: var(--aura-violet);
+}
+
+/* === LAYOUT UTILITIES === */
+.aura-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--aura-space-md);
+}
+
+.aura-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aura-space-md);
+}
+
+.aura-grid {
+  display: grid;
+  gap: var(--aura-space-md);
+}
+
+.aura-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === MODERN INTERACTIONS === */
+
+/* Clean hover effects */
+.aura-hover-lift {
+  transition: all 300ms ease;
+}
+
+.aura-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+.aura-hover-scale {
+  transition: all 300ms ease;
+}
+
+.aura-hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Subtle breathing animation - disabled for cleaner look */
+.aura-card-breathing {
+  /* animation removed for minimal design */
+}
+
+/* Clean hover overlay */
+.aura-clean-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.aura-clean-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.aura-clean-hover:hover::before {
+  opacity: 1;
+}
+
+/* Glowing text effect */
+.aura-text-glow {
+  position: relative;
+  background: linear-gradient(45deg, var(--aura-cinnabar), var(--aura-coral), var(--aura-violet));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: aura-gradient-flow 4s ease infinite;
+}
+
+@keyframes aura-gradient-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Morphing shapes */
+.aura-morph {
+  transition: all var(--aura-timing-slow) var(--aura-ease);
+  transform-origin: center;
+}
+
+.aura-morph:hover {
+  border-radius: 50% 20% 80% 40% / 30% 60% 70% 40%;
+  transform: rotate(2deg);
+}
+
+/* Parallax organic elements */
+.aura-parallax-slow {
+  animation: aura-parallax-slow 20s linear infinite;
+}
+
+.aura-parallax-medium {
+  animation: aura-parallax-medium 15s linear infinite;
+}
+
+.aura-parallax-fast {
+  animation: aura-parallax-fast 10s linear infinite;
+}
+
+@keyframes aura-parallax-slow {
+  0% { transform: translateY(0px) translateX(0px) rotate(0deg); opacity: 0.8; }
+  25% { transform: translateY(-20px) translateX(10px) rotate(90deg); opacity: 1; }
+  50% { transform: translateY(-10px) translateX(-5px) rotate(180deg); opacity: 0.6; }
+  75% { transform: translateY(-30px) translateX(15px) rotate(270deg); opacity: 0.9; }
+  100% { transform: translateY(0px) translateX(0px) rotate(360deg); opacity: 0.8; }
+}
+
+@keyframes aura-parallax-medium {
+  0% { transform: translateY(0px) scale(1) rotate(0deg); }
+  33% { transform: translateY(-15px) scale(1.1) rotate(120deg); }
+  66% { transform: translateY(5px) scale(0.9) rotate(240deg); }
+  100% { transform: translateY(0px) scale(1) rotate(360deg); }
+}
+
+@keyframes aura-parallax-fast {
+  0% { transform: translateX(0px) rotateY(0deg); opacity: 0.5; }
+  50% { transform: translateX(20px) rotateY(180deg); opacity: 1; }
+  100% { transform: translateX(0px) rotateY(360deg); opacity: 0.5; }
+}
+
+/* Staggered fade in animation */
+.aura-stagger-fade {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: aura-fade-up var(--aura-timing-slow) var(--aura-ease-out) forwards;
+}
+
+.aura-stagger-fade:nth-child(1) { animation-delay: 0.1s; }
+.aura-stagger-fade:nth-child(2) { animation-delay: 0.2s; }
+.aura-stagger-fade:nth-child(3) { animation-delay: 0.3s; }
+.aura-stagger-fade:nth-child(4) { animation-delay: 0.4s; }
+.aura-stagger-fade:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes aura-fade-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress bar with wave effect */
+.aura-progress-wave {
+  position: relative;
+  overflow: hidden;
+}
+
+.aura-progress-wave::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: aura-wave 2s linear infinite;
+}
+
+@keyframes aura-wave {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Input focus ring with organic shape */
+.aura-input-organic:focus {
+  outline: none;
+  border-color: var(--aura-cinnabar);
+  box-shadow: 0 0 0 4px rgba(236,78,34,0.2);
+  border-radius: 20px 8px 20px 8px;
+  transition: all var(--aura-timing-normal) var(--aura-ease);
+}
+
+/* Tooltip with organic design */
+.aura-tooltip {
+  position: relative;
+}
+
+.aura-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: var(--aura-gradient-card);
+  color: var(--aura-dark-gray);
+  padding: var(--aura-space-sm) var(--aura-space-md);
+  border-radius: var(--aura-radius-md);
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: var(--aura-shadow-lg);
+  opacity: 0;
+  transition: all var(--aura-timing-normal) var(--aura-ease);
+  z-index: 1000;
+}
+
+.aura-tooltip:hover::after {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Enhanced selection states */
+.aura-selectable {
+  cursor: pointer;
+  transition: all var(--aura-timing-normal) var(--aura-ease);
+  transform-origin: center;
+}
+
+.aura-selectable:hover {
+  transform: scale(1.03) translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.aura-selectable:active {
+  transform: scale(0.98);
+  transition: all var(--aura-timing-fast) var(--aura-ease);
+}
+
+.aura-selectable-selected {
+  transform: scale(1.05) translateY(-4px);
+  filter: brightness(1.1) saturate(1.2);
+  z-index: 2;
+  position: relative;
+}
+
+/* === RESPONSIVE UTILITIES === */
+@media (max-width: 768px) {
+  .aura-card {
+    border-radius: var(--aura-radius-xl);
+    padding: var(--aura-space-lg);
+    margin: var(--aura-space-sm);
+  }
+  
+  .aura-button-primary {
+    padding: var(--aura-space-sm) var(--aura-space-lg);
+    font-size: 16px;
+  }
+  
+  .aura-button-magnetic {
+    padding: var(--aura-space-sm) var(--aura-space-md);
+  }
+  
+  /* Reduced motion for mobile */
+  .aura-button-magnetic:hover {
+    transform: translateY(-2px);
+  }
+  
+  .aura-selectable:hover {
+    transform: scale(1.01) translateY(-1px);
+  }
+  
+  .aura-organic-element {
+    animation-duration: 12s;
+    opacity: 0.5;
+  }
+  
+  .aura-parallax-slow,
+  .aura-parallax-medium,
+  .aura-parallax-fast {
+    animation-play-state: paused;
+  }
+  
+  .aura-text-glow {
+    animation-play-state: paused;
+    background: var(--aura-violet);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .aura-card-breathing {
+    animation-play-state: paused;
+    transform: scale(1);
+  }
+  
+  .aura-morph:hover {
+    border-radius: var(--aura-radius-organic);
+    transform: none;
+  }
+  
+  .aura-progress-wave::after {
+    animation-duration: 3s;
+  }
+}
+
+@media (max-width: 480px) {
+  .aura-card {
+    padding: var(--aura-space-md);
+    margin: var(--aura-space-xs);
+  }
+  
+  .aura-button-primary,
+  .aura-button-magnetic {
+    padding: var(--aura-space-xs) var(--aura-space-md);
+    font-size: 14px;
+  }
+  
+  .aura-organic-element {
+    display: none;
+  }
+  
+  .aura-liquid-hover::before {
+    display: none;
+  }
+}
+
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .aura-organic-element,
+  .aura-parallax-slow,
+  .aura-parallax-medium,
+  .aura-parallax-fast,
+  .aura-text-glow,
+  .aura-card-breathing,
+  .aura-shimmer,
+  .aura-progress-wave::after {
+    animation: none;
+  }
+  
+  .aura-button-magnetic:hover {
+    transform: none;
+  }
+  
+  .aura-selectable:hover {
+    transform: none;
+  }
+  
+  .aura-morph:hover {
+    transform: none;
+    border-radius: var(--aura-radius-organic);
+  }
+}
+
+/* Additional utility classes for report */
+
+/* Custom classes for specific color variations */
+.aura-icon {
+  color: var(--aura-vermelho-cinnabar);
+}
+
+.aura-icon--cinnabar {
+  color: var(--aura-vermelho-cinnabar);
+}
+
+.aura-icon--coral {
+  color: var(--aura-coral);
+}
+
+.aura-icon--violet {
+  color: var(--aura-violeta);
+}
+
+/* Text utility classes */
+.aura-text-glow {
+  background: linear-gradient(135deg, var(--aura-vermelho-cinnabar), var(--aura-coral), var(--aura-violeta));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: aura-gradient-flow 4s ease infinite;
+}
+
+@keyframes aura-gradient-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Tailwind Color Extensions for Aura Theme */
+.text-aura-vermelho-cinnabar { color: var(--aura-vermelho-cinnabar); }
+.text-aura-coral { color: var(--aura-coral); }
+.text-aura-violeta { color: var(--aura-violeta); }
+.bg-aura-vermelho-cinnabar { background-color: var(--aura-vermelho-cinnabar); }
+.bg-aura-coral { background-color: var(--aura-coral); }
+.bg-aura-violeta { background-color: var(--aura-violeta); }
+.border-aura-vermelho-cinnabar { border-color: var(--aura-vermelho-cinnabar); }
+.border-aura-coral { border-color: var(--aura-coral); }
+.border-aura-violeta { border-color: var(--aura-violeta); }
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .aura-card {
+    border: 2px solid var(--aura-dark-gray);
+    background: var(--aura-white);
+  }
+  
+  .aura-card-selected {
+    border: 3px solid var(--aura-cinnabar);
+    background: rgba(236,78,34,0.1);
+  }
+  
+  .aura-organic-element {
+    opacity: 0.8;
+  }
 }

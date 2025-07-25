@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { insertQuizResponse, insertLead } from '@/lib/supabase';
-// import { storeAIReport } from '@/lib/reportStore'; // Temporarily disabled for debugging
+import { storeAIReport, storeMockQuizResponse } from '@/lib/reportStore';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
@@ -203,11 +203,26 @@ export async function POST(request: NextRequest) {
     console.log('💾 Stored quiz response and AI report in database for ID:', result.id);
     console.log('📊 Final result has AI report:', !!result.ai_report);
     
-    // Store AI report in memory store as fallback if database doesn't have the column
-    if (aiReport && !result.ai_report) {
-      console.log('📝 Storing AI report in memory store as fallback...');
-      // storeAIReport(result.id.toString(), aiReport); // Temporarily disabled for debugging
-      console.log('📝 Report storage temporarily disabled for serverless debugging');
+    // Always store AI report in memory store as a backup (for serverless compatibility)
+    if (aiReport) {
+      console.log('📝 Storing AI report in memory store as backup...');
+      storeAIReport(result.id.toString(), aiReport);
+      console.log('📝 Report stored in memory store');
+    }
+
+    // If this is a mock result (no Supabase), store it in the mock database as well
+    if (!process.env.SUPABASE_URL) {
+      console.log('🗃️ Storing complete result in mock database...');
+      storeMockQuizResponse({
+        id: result.id,
+        email: result.email,
+        company: result.company,
+        job_title: result.job_title,
+        responses: result.responses,
+        score: result.score,
+        ai_report: result.ai_report,
+        created_at: result.created_at
+      });
     }
 
     // Insert or update lead
@@ -267,7 +282,7 @@ async function generateAIReport(data: {
     'IMPORTANT: Write the entire report in Portuguese (Brazilian Portuguese). All content must be in Portuguese.' : 
     'Write the report in English.';
 
-  const prompt = `You are a career-focused AI consultant creating a premium departmental AI readiness report worth $1,000+. This report is for a DEPARTMENT LEADER, not a CEO.
+  const prompt = `You are a career-focused AI consultant creating a premium departmental AI readiness report. This report is for a DEPARTMENT LEADER, not a CEO.
 
 ${languageInstruction}
 
@@ -294,67 +309,65 @@ ${Object.entries(data.responses).map(([key, value]) => `• ${key}: ${value}`).j
 Create a premium DEPARTMENT-FOCUSED report in CLEAN JSON format. This is for a MID-MANAGER, not a CEO. Focus on CAREER ADVANCEMENT and DEPARTMENTAL SUCCESS.
 
 CRITICAL REQUIREMENTS:
-1. Reference ${data.jobTitle} at ${data.company} throughout - this is their personal career report
-2. Focus on ${data.responses['department-focus']} as their primary department area
-3. Address their specific challenge: ${data.responses['department-challenge']}
-4. Scale recommendations to their approval authority: ${data.responses['approval-process']}
-5. Consider their team size: ${data.responses['department-size']}
-6. Timeline must match: ${data.responses['implementation-timeline']}
-7. Career positioning context: ${data.responses['career-positioning']}
+1. Write concrete, actionable content - no placeholders or instructions
+2. Reference ${data.jobTitle} at ${data.company} throughout with specific recommendations
+3. Focus on their department area and provide detailed solutions
+4. Scale recommendations to their actual situation and authority level
+5. Provide specific metrics, timelines, and career benefits
+6. Make it feel like a $1000+ personalized consulting report
 
-Return ONLY this JSON structure with NO explanations:
+CRITICAL: Return ONLY valid JSON. Start with { and end with }. No markdown formatting, no explanations, no text before or after the JSON.
+
+Create detailed, specific content for each section:
 
 {
-  "executive_summary": "Write exactly 4-6 sentences specifically for ${data.jobTitle} at ${data.company}. Must address: their department's ${data.responses['department-focus']} challenges, how AI can solve their ${data.responses['department-challenge']} issue, career advancement opportunity from leading this initiative, and positioning them as the AI champion within their ${data.responses['company-context']} organization.",
+  "executive_summary": "[Write 4-6 specific sentences for this ${data.jobTitle} at ${data.company}. Analyze their ${data.score}/100 score, address their primary challenges, explain how AI will advance their career, and position them as an innovation leader. Be concrete and personal.]",
   
   "department_challenges": [
-    "Convert their specific challenge into actionable insight: ${data.responses['department-challenge']}",
-    "Address their department pain point: ${data.responses['department-pain']}",  
-    "Include career/political challenge from: ${data.responses['biggest-fear']}",
-    "Add context about leadership pressure: ${data.responses['leadership-pressure']}"
+    "[Convert their actual responses into 4-5 specific departmental challenges they face. Make these concrete problems they recognize, not generic statements. Use their actual company context and role.]"
   ],
   
   "career_impact": {
-    "personal_productivity": "Calculate time savings for ${data.jobTitle} personally managing ${data.responses['department-size']} team",
-    "team_performance": "Quantify team improvements in ${data.responses['department-focus']} area",
-    "leadership_recognition": "How this positions them as innovation leader given ${data.responses['career-positioning']} current state",
-    "professional_growth": "Career advancement opportunities from successfully implementing ${data.responses['success-metric']}"
+    "personal_productivity": "[Specific description of how AI will save this ${data.jobTitle} time and increase their personal effectiveness. Include estimated time savings and productivity gains.]",
+    "team_performance": "[Concrete ways AI will improve their team's performance, with specific metrics and improvements they can expect.]",
+    "leadership_recognition": "[Detailed explanation of how leading AI initiatives will position them for recognition and advancement within their organization.]",
+    "professional_growth": "[Specific career advancement opportunities and skills they'll gain by becoming the AI champion in their department.]"
   },
   
   "quick_wins": {
     "month_1_actions": [
-      { "action": "Immediate ${data.responses['department-focus']} optimization within ${data.responses['approval-process']} budget", "impact": "Specific weekly time savings for their team" },
-      { "action": "Address ${data.responses['department-pain']} with low-risk pilot", "impact": "Measurable department efficiency gain" }
+      { "action": "[Specific AI tool or process they can implement immediately in month 1]", "impact": "[Concrete result and benefit they'll see]" },
+      { "action": "[Second specific action for month 1]", "impact": "[Specific measurable impact]" }
     ],
     "quarter_1_goals": [
-      { "goal": "Build case for larger AI initiative targeting ${data.responses['department-challenge']}", "outcome": "Position as department AI champion" },
-      { "goal": "Demonstrate ${data.responses['success-metric']} to leadership", "outcome": "Career advancement recognition" }
+      { "goal": "[Specific quarterly goal with metrics]", "outcome": "[Concrete outcome and career benefit]" },
+      { "goal": "[Second quarterly goal]", "outcome": "[Specific result for their career]" }
     ]
   },
   
   "implementation_roadmap": [
     {
-      "phase": "Department Assessment & Pilot",
-      "duration": "Match their timeline: ${data.responses['implementation-timeline']}",
-      "description": "Specific to ${data.jobTitle}: audit ${data.responses['department-focus']} processes and launch pilot project within ${data.responses['approval-process']} authority",
-      "career_benefit": "Establishes you as the proactive AI leader"
+      "phase": "[Specific phase 1 name]",
+      "duration": "[Realistic timeline: 4-6 weeks]",
+      "description": "[Detailed description of what this ${data.jobTitle} will actually do in phase 1, specific to their department and authority level]",
+      "career_benefit": "[Specific career advancement benefit from completing this phase]"
     },
     {
-      "phase": "Team Adoption & Results", 
-      "duration": "Scale to ${data.responses['department-size']} team complexity",
-      "description": "Roll out successful pilot across ${data.responses['department-focus']} team, measure and document results",
-      "career_benefit": "Provides concrete achievements for performance reviews"
+      "phase": "[Specific phase 2 name]", 
+      "duration": "[Realistic timeline: 8-12 weeks]",
+      "description": "[Detailed phase 2 activities specific to their role and team size]",
+      "career_benefit": "[Concrete career advancement from this phase]"
     },
     {
-      "phase": "Cross-Department Expansion",
-      "duration": "Based on ${data.responses['company-context']} organizational structure", 
-      "description": "Become the AI expert helping other departments, leveraging success in ${data.responses['department-focus']}",
-      "career_benefit": "Position for promotion as the company's AI transformation leader"
+      "phase": "[Specific phase 3 name]",
+      "duration": "[Realistic timeline: 3-6 months]", 
+      "description": "[Detailed expansion phase activities that position them as the AI expert]",
+      "career_benefit": "[Specific promotion or recognition opportunities]"
     }
   ]
 }
 
-MANDATORY: Every field must focus on ${data.jobTitle}'s PERSONAL success and CAREER advancement, not company-wide transformation.`;
+MANDATORY: Write actual content, not instructions. Make every sentence valuable and specific to this person's situation. Focus on their personal career advancement through AI leadership.`;
 
   console.log('📝 Sending prompt to Anthropic API, length:', prompt.length);
   
@@ -372,10 +385,23 @@ MANDATORY: Every field must focus on ${data.jobTitle}'s PERSONAL success and CAR
   
   if (textResult) {
     console.log('✅ AI response received, length:', textResult.length);
+    console.log('📝 First 200 chars of response:', textResult.substring(0, 200));
+    
+    // Clean the response - remove any markdown formatting or explanations
+    let cleanedText = textResult.trim();
+    
+    // Find JSON boundaries if there's extra text
+    const firstBrace = cleanedText.indexOf('{');
+    const lastBrace = cleanedText.lastIndexOf('}');
+    
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+      console.log('🧹 Extracted JSON from position', firstBrace, 'to', lastBrace);
+    }
     
     try {
       // Parse and validate the JSON response
-      const jsonReport = JSON.parse(textResult);
+      const jsonReport = JSON.parse(cleanedText);
       
       // Validate that it has the required structure for department-focused report
       if (jsonReport.executive_summary && jsonReport.department_challenges && 
@@ -384,11 +410,82 @@ MANDATORY: Every field must focus on ${data.jobTitle}'s PERSONAL success and CAR
         return JSON.stringify(jsonReport, null, 2);
       } else {
         console.log('❌ Invalid JSON structure - missing required sections');
-        return textResult; // Return raw text as fallback
+        console.log('Available keys:', Object.keys(jsonReport));
+        
+        // Create fallback structure with available data
+        const fallbackReport = {
+          executive_summary: jsonReport.executive_summary || jsonReport.summary || 
+            `Como ${data.jobTitle} na ${data.company}, sua pontuação de ${data.score}/100 demonstra potencial para liderar a implementação de IA em seu departamento. Esta é uma oportunidade estratégica para se posicionar como líder em inovação, implementar soluções que aumentarão a eficiência operacional em 25-40%, e estabelecer sua carreira como especialista em transformação digital. O momento é ideal para tomar a iniciativa e se tornar referência em IA dentro da organização.`,
+          
+          department_challenges: jsonReport.department_challenges || jsonReport.challenges || [
+            'Processos manuais consomem tempo excessivo da equipe, limitando foco em atividades estratégicas',
+            'Falta de automação resulta em erros e retrabalho, impactando produtividade e moral da equipe',
+            'Análise de dados é feita de forma reativa, perdendo oportunidades de insights proativos',
+            'Pressão por resultados mais rápidos sem ferramentas adequadas para acelerar processos',
+            'Necessidade de demonstrar inovação e liderança tecnológica para avançar na carreira'
+          ],
+          
+          career_impact: jsonReport.career_impact || {
+            personal_productivity: `Como ${data.jobTitle}, você ganhará 8-12 horas semanais através da automação de tarefas repetitivas, permitindo foco em estratégia de alto nível e iniciativas que demonstram liderança visionária dentro da ${data.company}.`,
+            team_performance: `Sua equipe experimentará aumento de 30-45% na produtividade através de ferramentas de IA, melhorando a moral e estabelecendo você como o líder que transforma departamentos através da tecnologia.`,
+            leadership_recognition: `Liderar a implementação de IA estabelecerá você como inovador na ${data.company}, criando oportunidades de mentoria, projetos cross-funcionais e reconhecimento da diretoria como specialist em transformação digital.`,
+            professional_growth: `Desenvolver expertise em IA o tornará um profissional altamente valorizado, aumentando suas opções de carreira e valor de mercado, além de posicioná-lo para promoções e oportunidades de liderança sênior.`
+          },
+          
+          quick_wins: jsonReport.quick_wins || {
+            month_1_actions: [
+              { 
+                action: 'Implementar ferramentas de IA para automação de tarefas administrativas do departamento', 
+                impact: 'Redução imediata de 6-8 horas semanais de trabalho manual, demonstrando valor tangível da IA' 
+              },
+              { 
+                action: 'Configurar sistema de relatórios automatizados usando IA para análise de dados', 
+                impact: 'Insights em tempo real que impressionam stakeholders e aceleram tomada de decisão' 
+              }
+            ],
+            quarter_1_goals: [
+              { 
+                goal: 'Estabelecer programa piloto de IA com métricas claras de sucesso e ROI documentado', 
+                outcome: 'Case study interno que sustenta expansão e estabelece você como líder em inovação' 
+              },
+              { 
+                goal: 'Treinar equipe em ferramentas de IA e criar processo padronizado de adoção', 
+                outcome: 'Reconhecimento como mentor e change agent, posicionando para responsabilidades maiores' 
+              }
+            ]
+          },
+          
+          implementation_roadmap: jsonReport.implementation_roadmap || [
+            {
+              phase: 'Avaliação e Projeto Piloto',
+              duration: '4-6 semanas', 
+              description: `Como ${data.jobTitle}, você conduzirá análise detalhada dos processos departamentais, identificará oportunidades de maior impacto, e implementará projeto piloto de IA com métricas claras de sucesso.`,
+              career_benefit: 'Demonstra capacidade de liderança estratégica e visão tecnológica para a alta direção'
+            },
+            {
+              phase: 'Expansão e Otimização',
+              duration: '8-12 semanas', 
+              description: 'Expandir implementação para todos os processos relevantes, treinar equipe completamente, e estabelecer governança de IA no departamento.',
+              career_benefit: 'Prova habilidades de change management e execution, qualificando para posições sênior'
+            },
+            {
+              phase: 'Liderança Organizacional',
+              duration: '3-6 meses', 
+              description: 'Tornar-se consultor interno de IA, ajudar outros departamentos, e desenvolver estratégia de longo prazo para toda a organização.',
+              career_benefit: 'Posiciona para promoção executiva como especialista em transformação digital'
+            }
+          ]
+        };
+        
+        console.log('✅ Created fallback report structure');
+        return JSON.stringify(fallbackReport, null, 2);
       }
     } catch (error) {
       console.log('❌ Failed to parse JSON response:', error);
-      return textResult; // Return raw text as fallback
+      console.log('Raw response:', textResult.substring(0, 500));
+      
+      // As last resort, return the original text but log it for debugging
+      return textResult;
     }
   } else {
     console.log('❌ No text content in Anthropic response:', message.content[0]);

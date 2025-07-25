@@ -160,8 +160,8 @@ export const pt: Translations = {
     roadmap: 'Roadmap',
     // Quick Wins
     fastWins: 'Vitórias Rápidas Para Construir Momentum e Credibilidade',
-    month1Actions: 'Ações do Mês 1',
-    quarter1Goals: 'Metas do Trimestre 1',
+    month1Actions: 'Próximo Mês',
+    quarter1Goals: 'Próximo Trimestre',
     outcome: 'Resultado',
     // Implementation
     executionPlan: 'PLANO DE EXECUÇÃO',
@@ -187,6 +187,10 @@ export const pt: Translations = {
     startLearning: 'Começar a Aprender',
     totalImplementationTimeline: 'Cronograma Total de Implementação',
     fromAssessmentToDeployment: 'Da avaliação até a implantação completa',
+    timeToFirstResults: 'Tempo até os Primeiros Resultados',
+    whenYouWillSeeResults: 'Quando você começará a ver impacto mensurável',
+    weeks: 'Semanas',
+    firstMeasurableResults: 'Primeiros Resultados Mensuráveis',
     months: 'Meses',
     executiveStrategySession: 'Sessão de Estratégia Executiva Disponível',
     becomeTheAiChampion: 'Torne-se o Campeão de IA',
@@ -201,7 +205,13 @@ export const pt: Translations = {
     start: 'Início',
     readyToBegin: 'Pronto para Começar',
     moderateComplexity: 'Complexidade Moderada',
-    longTermVision: 'Visão de Longo Prazo'
+    longTermVision: 'Visão de Longo Prazo',
+    // Missing translations
+    departmentRoadmap: 'Plano do Departamento',
+    careerPositioning: 'Posicionamento de Carreira',
+    scheduleConsultation: 'Agendar Consulta de Campeão de IA',
+    keyChallenges: 'Principais Desafios',
+    aiAnalysisReport: 'Relatório de Análise de IA'
   },
   
   questions: {

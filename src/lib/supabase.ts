@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create Supabase client only if environment variables are available
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 export const QuizResponseSchema = z.object({
   id: z.number().optional(),
@@ -40,6 +43,21 @@ export async function insertQuizResponse(data: {
   score: number;
   ai_report?: string;
 }) {
+  // If Supabase is not configured, return a mock result for local development
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, using mock data');
+    const mockId = Math.floor(Math.random() * 1000) + 1;
+    return {
+      id: mockId,
+      email: data.email,
+      company: data.company,
+      job_title: data.job_title,
+      responses: data.responses,
+      score: data.score,
+      ai_report: data.ai_report || null,
+      created_at: new Date().toISOString()
+    };
+  }
   const insertData: Record<string, unknown> = {
     email: data.email,
     company: data.company,
@@ -117,6 +135,19 @@ export async function insertLead(data: {
   score: number;
   report_generated?: boolean;
 }) {
+  // If Supabase is not configured, return a mock result
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, skipping lead insertion');
+    return {
+      id: Math.floor(Math.random() * 1000) + 1,
+      email: data.email,
+      company: data.company,
+      job_title: data.job_title,
+      score: data.score,
+      report_generated: data.report_generated || true,
+      created_at: new Date().toISOString()
+    };
+  }
   const { data: result, error } = await supabase
     .from('leads')
     .upsert([{
@@ -180,6 +211,11 @@ export async function getQuizResponsesByEmail(email: string) {
 }
 
 export async function getQuizResponseById(id: string) {
+  // If Supabase is not configured, return null
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, cannot fetch quiz response');
+    return null;
+  }
   const { data, error } = await supabase
     .from('quiz_responses')
     .select('*')
