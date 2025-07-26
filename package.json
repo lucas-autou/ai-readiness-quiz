@@ -1,12 +1,16 @@
 {
-  "name": "ai-readiness-quiz",
-  "version": "0.1.0",
+  "name": "ai-champion-guide",
+  "version": "2.0.0",
+  "description": "Revolutionary AI masterplan generator for department leaders - Premium lead magnet with ultra-personalized reports",
+  "keywords": ["ai", "leadership", "automation", "roi-calculator", "lead-magnet", "nextjs", "claude", "consulting"],
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:reports": "node test-advanced-report.js",
+    "test:questions": "node test-new-questions.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

@@ -19,278 +19,242 @@ export interface QuizQuestion {
 
 export const quizQuestions: QuizQuestion[] = [
   {
-    id: 'department-challenge',
-    question: "What's your biggest challenge when leadership asks about AI initiatives?",
-    subtitle: "Think about your specific situation as a department leader",
+    id: 'time-consuming-process',
+    question: "Qual processo repetitivo consome mais tempo da sua equipe toda semana?",
+    subtitle: "Seja específico - vamos calcular o ROI de automatizar isso",
     type: 'card-select',
     cards: [
       {
-        title: "Proving ROI Without Risk",
-        description: "You need to show measurable results but can't afford a failed initiative",
-        value: "roi-pressure",
+        title: "Relatórios e Análises",
+        description: "Consolidar dados de múltiplas fontes, criar dashboards, PowerPoints",
+        value: "reporting-analytics",
         icon: "📊"
       },
       {
-        title: "Team Overwhelm",
-        description: "Your department is drowning in manual work and needs immediate relief", 
-        value: "team-burden",
-        icon: "⚡"
-      },
-      {
-        title: "Budget Approval Challenges",
-        description: "You know what needs to be done but getting budget approved is complex",
-        value: "budget-constraints",
-        icon: "💰"
-      },
-      {
-        title: "Career Risk Management",
-        description: "You want to lead innovation but can't risk being seen as the person who failed",
-        value: "career-protection",
-        icon: "🛡️"
-      }
-    ],
-    weight: 4,
-    personalizable: true
-  },
-  {
-    id: 'leadership-pressure',
-    question: "How often does your leadership team discuss AI initiatives?",
-    subtitle: "This helps us understand your organizational context",
-    type: 'multiple-choice',
-    options: [
-      "Never mentioned - we focus on traditional approaches",
-      "Occasionally comes up in meetings - starting to explore", 
-      "Regular agenda item - actively evaluating options",
-      "Top priority - immediate implementation expected"
-    ],
-    weight: 3,
-    personalizable: true
-  },
-  {
-    id: 'department-pain',
-    question: "Which of your team's daily tasks would you most like to eliminate?",
-    subtitle: "Think about what's consuming the most time and energy",
-    type: 'card-select',
-    cards: [
-      {
-        title: "Manual Data Entry",
-        description: "Hours spent copying, updating, and reconciling data across systems",
-        value: "data-entry-tasks",
-        icon: "⌨️"
-      },
-      {
-        title: "Repetitive Reporting",
-        description: "Creating the same status reports, dashboards, and updates weekly",
-        value: "repetitive-reporting",
-        icon: "📊"
-      },
-      {
-        title: "Meeting Coordination",
-        description: "Scheduling, follow-ups, action item tracking, and status updates",
-        value: "meeting-management",
-        icon: "📅"
-      },
-      {
-        title: "Customer Inquiries",
-        description: "Answering the same questions, routing requests, basic troubleshooting",
+        title: "Atendimento e Respostas",
+        description: "Emails repetitivos, suporte ao cliente, FAQs, tickets", 
         value: "customer-support",
-        icon: "📞"
+        icon: "💬"
+      },
+      {
+        title: "Gestão de Documentos",
+        description: "Contratos, propostas, aprovações, controle de versões",
+        value: "document-management",
+        icon: "📄"
+      },
+      {
+        title: "Entrada e Processamento de Dados",
+        description: "Digitação manual, transferência entre sistemas, validações",
+        value: "data-entry",
+        icon: "⌨️"
       }
     ],
-    weight: 3
+    weight: 5,
+    personalizable: true
   },
   {
-    id: 'approval-process',
-    question: "What's the typical approval process for new software in your department?",
-    subtitle: "Understanding your constraints helps us recommend the right approach",
-    type: 'multiple-choice',
-    options: [
-      "I can approve small tools directly - under $500/month",
-      "Need manager approval - up to $2,000/month budget", 
-      "Department head decision - up to $10,000/month",
-      "Executive committee required - enterprise-level decisions"
+    id: 'weekly-hours-wasted',
+    question: "Quantas horas por semana sua equipe gasta nesse processo?",
+    subtitle: "Some todos para chegar no total (ex: 5 pessoas x 4h cada = 20h)",
+    type: 'slider',
+    scaleMin: 5,
+    scaleMax: 100,
+    scaleLabels: { min: "5 horas", max: "100+ horas" },
+    weight: 5,
+    personalizable: true
+  },
+  {
+    id: 'process-error-cost',
+    question: "Quando erros acontecem nesse processo, qual é o impacto?",
+    subtitle: "Pense em retrabalho, perda de clientes, multas, atrasos",
+    type: 'card-select',
+    cards: [
+      {
+        title: "Baixo Impacto",
+        description: "Pequenos atrasos, retrabalho de menos de 1 hora",
+        value: "low-impact",
+        icon: "🟢"
+      },
+      {
+        title: "Médio Impacto",
+        description: "Retrabalho de horas, reclamações de clientes, atrasos em entregas",
+        value: "medium-impact",
+        icon: "🟡"
+      },
+      {
+        title: "Alto Impacto",
+        description: "Perda de clientes, multas, danos à reputação, dias de retrabalho",
+        value: "high-impact",
+        icon: "🔴"
+      },
+      {
+        title: "Crítico",
+        description: "Perdas financeiras significativas, riscos de compliance, impacto legal",
+        value: "critical-impact",
+        icon: "🚨"
+      }
     ],
     weight: 4
   },
   {
-    id: 'career-positioning',
-    question: "Which best describes your current situation with AI?",
-    subtitle: "Be honest - this affects the recommendations we provide",
+    id: 'monthly-budget-available',
+    question: "Qual orçamento mensal você consegue aprovar ou influenciar para ferramentas de IA?",
+    subtitle: "Seja realista - isso define o tipo de solução que podemos recomendar",
     type: 'multiple-choice',
     options: [
-      "Avoiding the topic - hoping someone else handles it",
-      "Researching quietly - building knowledge before acting",
-      "Actively exploring - evaluating options for my department", 
-      "Leading initiatives - positioning myself as the AI champion"
+      "Até R$ 500/mês - Aprovo sozinho pequenas ferramentas",
+      "R$ 500-2.000/mês - Preciso justificar mas consigo aprovar", 
+      "R$ 2.000-10.000/mês - Preciso de aprovação do diretor",
+      "Acima de R$ 10.000/mês - Decisão de comitê executivo"
     ],
-    weight: 2
+    weight: 5
   },
   {
-    id: 'biggest-fear',
-    question: "What's your biggest fear about recommending new technology?",
-    subtitle: "Understanding your concerns helps us provide better guidance",
-    type: 'card-select',
+    id: 'current-tech-stack',
+    question: "Quais sistemas sua equipe usa diariamente? (selecione todos)",
+    subtitle: "Vamos recomendar soluções que se integram com suas ferramentas",
+    type: 'multi-card-select',
+    multiSelect: true,
     cards: [
       {
-        title: "Initiative Failure",
-        description: "Recommending something that doesn't work and damaging your reputation",
-        value: "failure-risk",
-        icon: "⚠️"
+        title: "Excel/Google Sheets",
+        description: "Planilhas para dados e relatórios",
+        value: "spreadsheets",
+        icon: "📊"
       },
       {
-        title: "Team Resistance",
-        description: "Your team pushes back and you're stuck managing conflict",
-        value: "team-pushback",
-        icon: "🤝"
+        title: "CRM (Salesforce, HubSpot)",
+        description: "Gestão de clientes e vendas",
+        value: "crm",
+        icon: "👥"
       },
       {
-        title: "Budget Waste",
-        description: "Spending money on tools that don't deliver promised results",
-        value: "budget-waste",
-        icon: "💸"
+        title: "ERP (SAP, Oracle, TOTVS)",
+        description: "Sistema integrado de gestão",
+        value: "erp",
+        icon: "🏢"
       },
       {
-        title: "Being Left Behind",
-        description: "Staying safe while competitors and peers move ahead with AI",
-        value: "competitive-lag",
-        icon: "🏃‍♂️"
+        title: "Email/Comunicação",
+        description: "Outlook, Gmail, Teams, Slack",
+        value: "communication",
+        icon: "📧"
+      },
+      {
+        title: "BI/Analytics",
+        description: "Power BI, Tableau, Looker",
+        value: "analytics",
+        icon: "📈"
+      },
+      {
+        title: "Sistemas Próprios",
+        description: "Software desenvolvido internamente",
+        value: "custom",
+        icon: "🔧"
       }
     ],
     weight: 3
   },
   {
     id: 'success-metric',
-    question: "What would make you feel like an AI initiative was successful for your career?",
-    subtitle: "Think about how this would impact your professional standing",
+    question: "Qual métrica de sucesso seria mais valiosa para você apresentar em 90 dias?",
+    subtitle: "Escolha o resultado que mais impressionaria sua liderança",
     type: 'card-select',
     cards: [
       {
-        title: "Team Recognition",
-        description: "Your team is more productive and grateful for the improvements you brought",
-        value: "team-appreciation",
-        icon: "👥"
+        title: "Redução de 50% no Tempo",
+        description: "Processos que levavam dias agora levam horas",
+        value: "time-reduction",
+        icon: "⏱️"
       },
       {
-        title: "Leadership Praise", 
-        description: "Your boss recognizes you as the person who solved a major problem",
-        value: "executive-recognition",
-        icon: "🏆"
+        title: "Economia de R$ 20k+/mês", 
+        description: "Redução comprovada de custos operacionais",
+        value: "cost-savings",
+        icon: "💰"
       },
       {
-        title: "Measurable Results",
-        description: "Clear metrics you can point to in performance reviews and meetings",
-        value: "quantifiable-impact",
+        title: "Zero Erros Críticos",
+        description: "Eliminação de erros caros e retrabalho",
+        value: "error-elimination",
+        icon: "✅"
+      },
+      {
+        title: "ROI de 300%+",
+        description: "Retorno mensurável sobre investimento em IA",
+        value: "roi-achievement",
         icon: "📈"
-      },
-      {
-        title: "Industry Reputation",
-        description: "Being known as the AI champion who successfully led digital transformation",
-        value: "professional-reputation",
-        icon: "🌟"
       }
     ],
-    weight: 3,
+    weight: 4,
     personalizable: true
   },
   {
-    id: 'implementation-timeline',
-    question: "What's your realistic timeline for implementing a new departmental tool?",
-    subtitle: "Consider your team's capacity and other priorities",
+    id: 'implementation-urgency',
+    question: "Até quando você precisa mostrar resultados com IA?",
+    subtitle: "Seja realista sobre pressões e expectativas",
     type: 'multiple-choice',
     options: [
-      "This month - we need immediate relief from current problems",
-      "Next quarter - planned implementation with proper preparation",
-      "Next 6 months - strategic initiative with full change management",
-      "Next year - part of annual planning and budget cycle"
+      "30 dias - Pressão imediata por resultados",
+      "90 dias - Fim do trimestre, preciso de quick wins",
+      "6 meses - Tempo para implementação estruturada",
+      "Sem pressa - Explorando possibilidades"
     ],
-    weight: 2
+    weight: 3
   },
   {
-    id: 'department-focus',
-    question: "Which area of your department would benefit most from AI assistance?",
-    subtitle: "Think about where you spend the most time on manual or repetitive work",
-    type: 'card-select',
-    cards: [
-      {
-        title: "Data & Analytics",
-        description: "Report generation, data analysis, trend identification, dashboard creation",
-        value: "data-analytics",
-        icon: "📊"
-      },
-      {
-        title: "Customer Communications",
-        description: "Email responses, support tickets, follow-ups, relationship management",
-        value: "customer-comms",
-        icon: "📧"
-      },
-      {
-        title: "Project Management",
-        description: "Status tracking, resource allocation, timeline management, coordination",
-        value: "project-mgmt",
-        icon: "📋"
-      },
-      {
-        title: "Process Optimization",
-        description: "Workflow improvements, quality control, compliance tracking, efficiency gains",
-        value: "process-optimization",
-        icon: "⚙️"
-      }
-    ],
-    weight: 1
-  },
-  {
-    id: 'department-size',
-    question: "How many people report to you or work in your immediate area?",
-    subtitle: "This helps us scale recommendations to your team management scope",
+    id: 'team-impact-size',
+    question: "Quantas pessoas seriam impactadas positivamente pela automação?",
+    subtitle: "Inclua sua equipe direta e outros departamentos beneficiados",
     type: 'multiple-choice',
     options: [
-      "Just me - individual contributor looking to optimize personal workflow",
-      "2-5 people - small team leader focused on team productivity",
-      "6-15 people - department manager overseeing multiple functions",
-      "16-50 people - senior manager with multiple teams or large department",
-      "50+ people - director/VP level with complex organizational structure"
+      "1-5 pessoas - Impacto localizado",
+      "6-20 pessoas - Departamento inteiro",
+      "21-50 pessoas - Múltiplas equipes",
+      "51-100 pessoas - Área completa",
+      "100+ pessoas - Impacto organizacional"
     ],
-    weight: 2
+    weight: 3
   },
   {
     id: 'industry-sector',
-    question: "Which industry best describes your primary business?",
-    subtitle: "We'll provide AI recommendations specific to your sector",
+    question: "Em qual setor sua empresa atua?",
+    subtitle: "Vamos dar exemplos específicos do seu mercado",
     type: 'card-select',
     cards: [
       {
-        title: "Technology/SaaS",
-        description: "Software, tech services, digital platforms",
+        title: "Tecnologia/SaaS",
+        description: "Software, serviços digitais, plataformas",
         value: "technology",
         icon: "💻"
       },
       {
-        title: "Manufacturing",
-        description: "Production, supply chain, industrial operations", 
+        title: "Indústria/Manufatura",
+        description: "Produção, supply chain, operações industriais", 
         value: "manufacturing",
         icon: "🏭"
       },
       {
-        title: "Healthcare/Life Sciences",
-        description: "Medical services, pharmaceuticals, biotechnology",
+        title: "Saúde/Farmacêutico",
+        description: "Hospitais, clínicas, laboratórios, farmácias",
         value: "healthcare",
         icon: "🏥"
       },
       {
-        title: "Financial Services",
-        description: "Banking, insurance, fintech, investment",
+        title: "Serviços Financeiros",
+        description: "Bancos, seguros, fintech, investimentos",
         value: "financial",
         icon: "🏦"
       },
       {
-        title: "Retail/E-commerce",
-        description: "Consumer goods, online retail, marketplace",
+        title: "Varejo/E-commerce",
+        description: "Lojas físicas, online, marketplace",
         value: "retail",
         icon: "🛒"
       },
       {
-        title: "Professional Services",
-        description: "Consulting, legal, accounting, marketing agencies",
+        title: "Serviços Profissionais",
+        description: "Consultoria, advocacia, contabilidade, agências",
         value: "services",
         icon: "💼"
       }
@@ -298,121 +262,48 @@ export const quizQuestions: QuizQuestion[] = [
     weight: 3
   },
   {
-    id: 'champion-obstacle',
-    question: "What's your biggest obstacle to becoming the AI champion in your organization?",
-    subtitle: "Select the barriers that most concern you about leading AI initiatives",
-    type: 'multi-card-select',
-    multiSelect: true,
-    maxSelections: 3,
-    cards: [
-      {
-        title: "Technical Knowledge Gap",
-        description: "Not understanding AI capabilities well enough to make informed decisions",
-        value: "knowledge-gap",
-        icon: "🧠"
-      },
-      {
-        title: "Budget Justification",
-        description: "Difficulty proving ROI and getting financial approval for AI tools",
-        value: "budget-approval",
-        icon: "💰"
-      },
-      {
-        title: "Change Management", 
-        description: "Resistance from team members who prefer current processes",
-        value: "team-resistance",
-        icon: "🤝"
-      },
-      {
-        title: "Vendor Selection",
-        description: "Too many options, unclear which AI solutions are right for your needs",
-        value: "vendor-confusion",
-        icon: "🔍"
-      },
-      {
-        title: "Implementation Risk",
-        description: "Fear that AI project could fail and damage your professional reputation",
-        value: "failure-fear", 
-        icon: "⚠️"
-      },
-      {
-        title: "Time Constraints",
-        description: "Too busy with current responsibilities to properly evaluate and implement AI",
-        value: "time-shortage",
-        icon: "⏰"
-      }
-    ],
-    weight: 4
-  },
-  {
-    id: 'company-context',
-    question: "What best describes your company's overall size and structure?",
-    subtitle: "This helps us understand your organizational context and decision-making process",
-    type: 'multiple-choice',
-    options: [
-      "Startup/Small Business - under 50 employees, informal structure",
-      "Growing Company - 50-200 employees, establishing formal processes",  
-      "Mid-size Corporation - 200-1000 employees, departmental structure",
-      "Large Enterprise - 1000-5000 employees, complex hierarchy",
-      "Fortune 500/Global - 5000+ employees, multiple divisions and locations"
-    ],
-    weight: 2
-  },
-  {
-    id: 'operational-challenges',
-    question: "Describe your biggest operational challenges or time-consuming processes (Optional)",
-    subtitle: "Share specific details about processes, pain points, or inefficiencies that affect your daily work. This helps us provide more personalized recommendations.",
-    type: 'text-area',
-    placeholder: "Example: Creating weekly reports takes 6 hours because I need to pull data from 3 systems manually, coordinate with 2 departments for updates, and format everything in PowerPoint. The approval process gets stuck when managers are traveling...",
-    maxLength: 600,
-    optional: true,
-    weight: 2,
-    personalizable: true
-  },
-  {
-    id: 'current-tools',
-    question: "Which business tools does your team use most frequently?",
-    subtitle: "We'll recommend AI solutions that integrate with your existing stack",
+    id: 'biggest-ai-concern',
+    question: "Qual sua maior preocupação ao implementar IA?",
+    subtitle: "Vamos endereçar isso especificamente no seu roadmap",
     type: 'card-select',
     cards: [
       {
-        title: "Microsoft Ecosystem",
-        description: "Office 365, Teams, SharePoint, Dynamics",
-        value: "microsoft",
-        icon: "🔷"
+        title: "Segurança dos Dados",
+        description: "Proteção de informações confidenciais da empresa",
+        value: "data-security",
+        icon: "🔒"
       },
       {
-        title: "Google Workspace",
-        description: "Gmail, Drive, Sheets, Meet, Google Cloud",
-        value: "google",
-        icon: "🔍"
+        title: "Resistência da Equipe",
+        description: "Medo de mudança ou substituição de empregos",
+        value: "team-resistance",
+        icon: "👥"
       },
       {
-        title: "Salesforce/CRM Focus",
-        description: "Salesforce, HubSpot, Pipedrive, customer management",
-        value: "salesforce",
-        icon: "☁️"
+        title: "Falha na Implementação",
+        description: "Projeto não entregar os resultados prometidos",
+        value: "implementation-failure",
+        icon: "⚠️"
       },
       {
-        title: "Creative/Design Tools",
-        description: "Adobe Creative Suite, Figma, content creation",
-        value: "creative",
-        icon: "🎨"
-      },
-      {
-        title: "Development/Technical",
-        description: "AWS, GitHub, Jira, developer tools",
-        value: "technical",
-        icon: "🛠️"
-      },
-      {
-        title: "Industry-Specific Software",
-        description: "ERP systems, specialized industry platforms",
-        value: "industry-specific",
-        icon: "🏭"
+        title: "Custo vs Benefício",
+        description: "ROI não justificar o investimento",
+        value: "roi-concern",
+        icon: "💸"
       }
     ],
     weight: 3
+  },
+  {
+    id: 'specific-process-description',
+    question: "Descreva exatamente como funciona hoje o processo que você quer automatizar",
+    subtitle: "Quanto mais detalhes, mais preciso será nosso roadmap de IA para você",
+    type: 'text-area',
+    placeholder: "Exemplo: Todo dia extraio dados de vendas do Salesforce (30min), copio para Excel (15min), cruzo com dados do ERP (45min), formato relatório no PowerPoint (2h), envio para 5 gerentes aprovarem. Se alguém pede mudança, refaço tudo. Total: 4h/dia.",
+    maxLength: 800,
+    optional: false,
+    weight: 5,
+    personalizable: true
   }
 ];
 
@@ -427,131 +318,134 @@ export function calculateScore(responses: Record<string, string | string[]>): nu
     let points = 0;
     let maxPoints = 5; // Default max points
 
-    // Custom scoring for department-focused questions
+    // Custom scoring for new actionable questions
     switch (question.id) {
-      case 'department-challenge':
-        // Higher scores for proactive vs reactive challenges
-        const challengeMap: Record<string, number> = {
-          'roi-pressure': 4, // Shows strategic thinking
-          'budget-constraints': 3, // Shows leadership awareness
-          'team-burden': 2, // Operational focus
-          'career-protection': 1 // Defensive mindset
+      case 'time-consuming-process':
+        // Higher scores for processes with more automation potential
+        const processMap: Record<string, number> = {
+          'reporting-analytics': 5, // High automation potential
+          'data-entry': 4, // Very repetitive
+          'customer-support': 3, // Moderate automation
+          'document-management': 3 // Moderate automation
         };
-        points = challengeMap[response as string] || 1;
-        maxPoints = 4;
+        points = processMap[response as string] || 2;
+        maxPoints = 5;
         break;
 
-      case 'leadership-pressure':
-        // Higher scores for more AI-forward organizations
-        const pressureMap: Record<string, number> = {
-          'Never mentioned - we focus on traditional approaches': 1,
-          'Occasionally comes up in meetings - starting to explore': 2,
-          'Regular agenda item - actively evaluating options': 3,
-          'Top priority - immediate implementation expected': 4
-        };
-        points = pressureMap[response as string] || 1;
-        maxPoints = 4;
+      case 'weekly-hours-wasted':
+        // Higher scores for more hours wasted (more opportunity)
+        const hours = parseInt(response as string);
+        if (hours >= 80) points = 5;
+        else if (hours >= 50) points = 4;
+        else if (hours >= 30) points = 3;
+        else if (hours >= 15) points = 2;
+        else points = 1;
+        maxPoints = 5;
         break;
 
-      case 'career-positioning':
-        // Higher scores for more proactive AI engagement
-        const positionMap: Record<string, number> = {
-          'Avoiding the topic - hoping someone else handles it': 1,
-          'Researching quietly - building knowledge before acting': 2,
-          'Actively exploring - evaluating options for my department': 3,
-          'Leading initiatives - positioning myself as the AI champion': 4
+      case 'process-error-cost':
+        // Higher scores for higher impact (more value in fixing)
+        const errorMap: Record<string, number> = {
+          'critical-impact': 5,
+          'high-impact': 4,
+          'medium-impact': 2,
+          'low-impact': 1
         };
-        points = positionMap[response as string] || 1;
-        maxPoints = 4;
+        points = errorMap[response as string] || 1;
+        maxPoints = 5;
         break;
 
-      case 'approval-process':
-        // Higher scores for more decision-making authority
-        const approvalMap: Record<string, number> = {
-          'I can approve small tools directly - under $500/month': 4,
-          'Need manager approval - up to $2,000/month budget': 3,
-          'Department head decision - up to $10,000/month': 2,
-          'Executive committee required - enterprise-level decisions': 1
+      case 'monthly-budget-available':
+        // Higher scores for more budget authority
+        const budgetMap: Record<string, number> = {
+          'Até R$ 500/mês - Aprovo sozinho pequenas ferramentas': 2,
+          'R$ 500-2.000/mês - Preciso justificar mas consigo aprovar': 3,
+          'R$ 2.000-10.000/mês - Preciso de aprovação do diretor': 4,
+          'Acima de R$ 10.000/mês - Decisão de comitê executivo': 5
         };
-        points = approvalMap[response as string] || 1;
-        maxPoints = 4;
+        points = budgetMap[response as string] || 1;
+        maxPoints = 5;
         break;
 
-      case 'implementation-timeline':
-        // Higher scores for faster implementation capability
-        const timelineMap: Record<string, number> = {
-          'This month - we need immediate relief from current problems': 4,
-          'Next quarter - planned implementation with proper preparation': 3,
-          'Next 6 months - strategic initiative with full change management': 2,
-          'Next year - part of annual planning and budget cycle': 1
+      case 'implementation-urgency':
+        // Higher scores for more urgency (ready to act)
+        const urgencyMap: Record<string, number> = {
+          '30 dias - Pressão imediata por resultados': 5,
+          '90 dias - Fim do trimestre, preciso de quick wins': 4,
+          '6 meses - Tempo para implementação estruturada': 3,
+          'Sem pressa - Explorando possibilidades': 1
         };
-        points = timelineMap[response as string] || 1;
-        maxPoints = 4;
+        points = urgencyMap[response as string] || 1;
+        maxPoints = 5;
+        break;
+
+      case 'team-impact-size':
+        // Higher scores for larger impact
+        const impactMap: Record<string, number> = {
+          '1-5 pessoas - Impacto localizado': 1,
+          '6-20 pessoas - Departamento inteiro': 2,
+          '21-50 pessoas - Múltiplas equipes': 3,
+          '51-100 pessoas - Área completa': 4,
+          '100+ pessoas - Impacto organizacional': 5
+        };
+        points = impactMap[response as string] || 1;
+        maxPoints = 5;
+        break;
+
+      case 'success-metric':
+        // All metrics are valuable, slight preference for ROI
+        const metricMap: Record<string, number> = {
+          'roi-achievement': 5,
+          'cost-savings': 4,
+          'time-reduction': 4,
+          'error-elimination': 3
+        };
+        points = metricMap[response as string] || 3;
+        maxPoints = 5;
+        break;
+
+      case 'current-tech-stack':
+        // More tools = better integration readiness
+        if (Array.isArray(response)) {
+          points = Math.min(response.length, 5);
+          maxPoints = 5;
+        }
+        break;
+
+      case 'biggest-ai-concern':
+        // Lower scores for bigger concerns (more barriers)
+        const concernMap: Record<string, number> = {
+          'data-security': 3, // Valid but manageable
+          'team-resistance': 2, // Requires change management
+          'implementation-failure': 2, // Fear-based
+          'roi-concern': 3 // Financial focus is good
+        };
+        points = concernMap[response as string] || 2;
+        maxPoints = 5;
+        break;
+
+      case 'specific-process-description':
+        // Score based on detail level
+        if (typeof response === 'string') {
+          const textLength = response.trim().length;
+          if (textLength >= 400) points = 5; // Very detailed
+          else if (textLength >= 200) points = 4; // Good detail
+          else if (textLength >= 100) points = 3; // Some detail
+          else if (textLength >= 50) points = 2; // Basic
+          else points = 1; // Minimal
+          maxPoints = 5;
+        }
         break;
 
       default:
-        // Default scoring logic for other question types
-        switch (question.type) {
-          case 'multiple-choice':
-            if (question.options && typeof response === 'string') {
-              points = question.options.indexOf(response) + 1;
-              maxPoints = question.options.length;
-            }
-            break;
-          
-          case 'scale':
-          case 'slider':
-            if (typeof response === 'string') {
-              points = parseInt(response);
-              maxPoints = question.scaleMax || 5;
-            }
-            break;
-            
-          case 'card-select':
-            if (question.cards && typeof response === 'string') {
-              // Find the card and assign points based on its position
-              const cardIndex = question.cards.findIndex(card => card.value === response);
-              points = cardIndex >= 0 ? cardIndex + 1 : 1;
-              maxPoints = question.cards.length;
-            }
-            break;
-
-          case 'multi-card-select':
-            if (question.cards && Array.isArray(response)) {
-              // For multi-select, calculate average position of selected cards
-              let totalCardPoints = 0;
-              response.forEach(val => {
-                const cardIndex = question.cards!.findIndex(card => card.value === val);
-                totalCardPoints += cardIndex >= 0 ? cardIndex + 1 : 1;
-              });
-              points = response.length > 0 ? totalCardPoints / response.length : 1;
-              maxPoints = question.cards.length;
-            }
-            break;
-
-          case 'text-area':
-            // For text-area, assign points based on text length/quality
-            if (typeof response === 'string') {
-              const textLength = response.trim().length;
-              if (textLength === 0) {
-                points = 1; // No text provided
-              } else if (textLength < 50) {
-                points = 2; // Brief description
-              } else if (textLength < 200) {
-                points = 3; // Good detail
-              } else {
-                points = 4; // Comprehensive description
-              }
-              maxPoints = 4;
-            } else {
-              points = 1;
-              maxPoints = 4;
-            }
-            break;
-            
-          default:
-            points = 1;
-            maxPoints = 1;
+        // Default scoring for other questions
+        if (question.type === 'multiple-choice' && question.options) {
+          const index = question.options.indexOf(response as string);
+          points = index >= 0 ? index + 1 : 1;
+          maxPoints = question.options.length;
+        } else {
+          points = 3; // Default middle score
+          maxPoints = 5;
         }
     }
 

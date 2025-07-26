@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { insertQuizResponse, insertLead } from '@/lib/supabase';
 import { storeAIReport, storeMockQuizResponse } from '@/lib/reportStore';
 import { generateFallbackReportJSON } from '@/lib/fallbackReportGenerator';
+import { generateAIReportWithAgents } from '@/lib/ai-agents';
+import { AdvancedReportGenerator } from '@/lib/reportGenerator';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
@@ -162,14 +164,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate AI report with robust fallback system
+    // Generate AI report with multi-agent system and robust fallback
     let aiReport = null;
     let reportGenerationMethod = 'none';
     
-    // Attempt 1: Generate using Claude API
-    if (process.env.ANTHROPIC_API_KEY) {
+    // Attempt 1: Generate using Multi-Agent System (PRIORITY 1 - AI FIRST!)
+    if (!aiReport && process.env.ANTHROPIC_API_KEY) {
       try {
-        console.log('🤖 Attempting AI report generation for:', company);
+        console.log('🚀 Attempting Multi-Agent AI report generation for:', company);
+        
+        const userContext = {
+          email,
+          company,
+          jobTitle,
+          responses,
+          score,
+          language: language as 'pt' | 'en'
+        };
+        
+        const result = await generateAIReportWithAgents(
+          userContext,
+          process.env.ANTHROPIC_API_KEY
+        );
+        
+        if (result.success && result.report) {
+          aiReport = JSON.stringify(result.report, null, 2);
+          reportGenerationMethod = 'multi-agent';
+          console.log(`✅ Multi-agent report generated successfully in ${result.executionTime}ms`);
+          console.log('📊 Agents used:', result.agentsUsed.join(', '));
+        } else {
+          console.log('⚠️ Multi-agent system failed, falling back to legacy:', result.error);
+          aiReport = null;
+        }
+      } catch (error) {
+        console.error('❌ Multi-agent system error:', error);
+        aiReport = null;
+      }
+    }
+    
+    // Attempt 2: Generate using Legacy Claude API (FALLBACK 1)
+    if (!aiReport && process.env.ANTHROPIC_API_KEY) {
+      try {
+        console.log('🤖 Attempting legacy AI report generation for:', company);
         
         aiReport = await generateAIReport({
           email,
@@ -181,29 +217,52 @@ export async function POST(request: NextRequest) {
         });
         
         if (aiReport && aiReport.length > 100) {
-          console.log('✅ AI report generated successfully, length:', aiReport.length);
-          reportGenerationMethod = 'claude-api';
+          console.log('✅ Legacy AI report generated successfully, length:', aiReport.length);
+          reportGenerationMethod = 'claude-legacy';
           
           // Validate that it's proper JSON
           try {
             JSON.parse(aiReport);
-            console.log('✅ AI report is valid JSON');
+            console.log('✅ Legacy AI report is valid JSON');
           } catch (jsonError) {
-            console.log('⚠️ AI report is not valid JSON, will use as-is:', jsonError);
+            console.log('⚠️ Legacy AI report is not valid JSON, will use as-is:', jsonError);
           }
         } else {
-          console.log('⚠️ AI report generation returned insufficient content');
+          console.log('⚠️ Legacy AI report generation returned insufficient content');
           aiReport = null;
         }
       } catch (error) {
-        console.error('❌ Error generating AI report:', error);
+        console.error('❌ Error generating legacy AI report:', error);
         aiReport = null;
       }
-    } else {
+    } else if (!aiReport) {
       console.log('⚠️ No Anthropic API key found, skipping Claude generation');
     }
     
-    // Attempt 2: Generate using fallback system if Claude failed
+    // Attempt 3: Generate using Advanced Report Generator (FALLBACK 2)
+    if (!aiReport) {
+      try {
+        console.log('🔧 Generating advanced personalized report as fallback for:', company);
+        
+        const generator = new AdvancedReportGenerator({
+          email,
+          company,
+          jobTitle,
+          score,
+          responses
+        });
+        
+        const advancedReport = generator.generateReport();
+        aiReport = JSON.stringify(advancedReport, null, 2);
+        reportGenerationMethod = 'advanced-generator-fallback';
+        console.log('✅ Advanced report generated successfully as fallback');
+      } catch (error) {
+        console.error('❌ Advanced generator fallback error:', error);
+        aiReport = null;
+      }
+    }
+    
+    // Attempt 4: Generate using fallback system if all methods failed
     if (!aiReport) {
       try {
         console.log('🛡️ Generating fallback report for guaranteed content');
@@ -322,17 +381,23 @@ export async function POST(request: NextRequest) {
       // Strategy 2: Store in mock database for additional redundancy
       try {
         console.log('🗃️ Storing complete result in mock database as redundancy...');
-        storeMockQuizResponse({
+        
+        // CRITICAL: Ensure the AI report is included in the mock database
+        const completeResult = {
           id: result.id,
           email: result.email,
           company: result.company,
           job_title: result.job_title,
           responses: result.responses,
           score: result.score,
-          ai_report: result.ai_report || aiReport, // Ensure we have the report
+          ai_report: aiReport, // Use the generated report directly
           created_at: result.created_at
-        });
-        console.log('✅ Mock database backup completed');
+        };
+        
+        console.log('🗃️ Mock result has report:', !!completeResult.ai_report, 'length:', completeResult.ai_report?.length || 0);
+        
+        storeMockQuizResponse(completeResult);
+        console.log('✅ Mock database backup completed with AI report');
       } catch (mockError) {
         console.error('❌ Mock database backup failed:', mockError);
       }
@@ -388,41 +453,46 @@ export async function POST(request: NextRequest) {
 function cleanQuizData(responses: Record<string, string | string[]>) {
   const cleaned: Record<string, string> = {};
   
-  // Industry sector mapping to readable names
+  // Process type mapping
+  const processMap: Record<string, string> = {
+    'reporting-analytics': 'relatórios e análises',
+    'customer-support': 'atendimento e suporte',
+    'document-management': 'gestão de documentos',
+    'data-entry': 'entrada de dados'
+  };
+  
+  // Error impact mapping
+  const errorMap: Record<string, string> = {
+    'low-impact': 'baixo impacto',
+    'medium-impact': 'médio impacto',
+    'high-impact': 'alto impacto',
+    'critical-impact': 'impacto crítico'
+  };
+  
+  // Success metric mapping
+  const metricMap: Record<string, string> = {
+    'time-reduction': 'redução de 50% no tempo',
+    'cost-savings': 'economia de R$ 20k+/mês',
+    'error-elimination': 'zero erros críticos',
+    'roi-achievement': 'ROI de 300%+'
+  };
+  
+  // Concern mapping
+  const concernMap: Record<string, string> = {
+    'data-security': 'segurança dos dados',
+    'team-resistance': 'resistência da equipe',
+    'implementation-failure': 'falha na implementação',
+    'roi-concern': 'custo vs benefício'
+  };
+  
+  // Industry mapping
   const industryMap: Record<string, string> = {
-    'Tecnologia/SaaS': 'tecnologia',
-    'Manufatura': 'manufatura',
-    'Saúde/Ciências da Vida': 'saúde',
-    'Serviços Financeiros': 'serviços financeiros',
-    'Varejo/E-commerce': 'varejo',
-    'Serviços Profissionais': 'serviços profissionais',
-    'Technology/SaaS': 'technology',
-    'Manufacturing': 'manufacturing',
-    'Healthcare/Life Sciences': 'healthcare',
-    'Financial Services': 'financial services',
-    'Retail/E-commerce': 'retail',
-    'Professional Services': 'professional services'
-  };
-  
-  // Department size mapping to readable format
-  const departmentSizeMap: Record<string, string> = {
-    '1-5 pessoas': 'pequena (1-5 pessoas)',
-    '6-15 pessoas': 'média (6-15 pessoas)', 
-    '16-50 pessoas': 'grande (16-50 pessoas)',
-    '50+ pessoas': 'muito grande (50+ pessoas)',
-    '1-5 people': 'small (1-5 people)',
-    '6-15 people': 'medium (6-15 people)',
-    '16-50 people': 'large (16-50 people)',
-    '50+ people': 'very large (50+ people)'
-  };
-  
-  // Company context simplification
-  const contextMap: Record<string, string> = {
-    'Startup/Pequena Empresa - menos de 50 funcionários, estrutura informal': 'startup',
-    'Empresa em Crescimento - 50-200 funcionários, estabelecendo processos formais': 'empresa em crescimento',
-    'Corporação de Médio Porte - 200-1000 funcionários, estrutura departamental': 'empresa de médio porte',
-    'Grande Empresa - 1000-5000 funcionários, hierarquia complexa': 'grande empresa',
-    'Fortune 500/Global - 5000+ funcionários, múltiplas divisões e localizações': 'corporação global'
+    'technology': 'tecnologia',
+    'manufacturing': 'manufatura',
+    'healthcare': 'saúde',
+    'financial': 'serviços financeiros',
+    'retail': 'varejo',
+    'services': 'serviços profissionais'
   };
   
   // Clean each field
@@ -430,18 +500,24 @@ function cleanQuizData(responses: Record<string, string | string[]>) {
     const strValue = Array.isArray(value) ? value.join(', ') : value?.toString() || '';
     
     switch (key) {
+      case 'time-consuming-process':
+        cleaned[key] = processMap[strValue] || strValue;
+        break;
+      case 'process-error-cost':
+        cleaned[key] = errorMap[strValue] || strValue;
+        break;
+      case 'success-metric':
+        cleaned[key] = metricMap[strValue] || strValue;
+        break;
+      case 'biggest-ai-concern':
+        cleaned[key] = concernMap[strValue] || strValue;
+        break;
       case 'industry-sector':
-        cleaned[key] = industryMap[strValue] || strValue.toLowerCase();
+        cleaned[key] = industryMap[strValue] || strValue;
         break;
-      case 'department-size':
-        cleaned[key] = departmentSizeMap[strValue] || strValue;
-        break;
-      case 'company-context':
-        cleaned[key] = contextMap[strValue] || strValue;
-        break;
-      case 'operational-challenges':
-        // Keep original but truncate if too long
-        cleaned[key] = strValue.length > 500 ? strValue.substring(0, 500) + '...' : strValue;
+      case 'specific-process-description':
+        // Keep original description as-is for maximum personalization
+        cleaned[key] = strValue;
         break;
       default:
         cleaned[key] = strValue;
@@ -466,139 +542,145 @@ async function generateAIReport(data: {
     'IMPORTANT: Write the entire report in Portuguese (Brazilian Portuguese). All content must be in Portuguese.' : 
     'Write the report in English.';
 
-  const prompt = `You are an operational efficiency consultant creating a practical AI implementation report. This report focuses on ACTIONABLE SOLUTIONS, not generic career advice.
+  const prompt = `You are creating a PREMIUM AI MASTERPLAN that the user will want to save, share, and reference repeatedly. This must be so valuable and specific that they feel confident implementing it immediately.
 
 ${languageInstruction}
 
 CLIENT PROFILE:
-• Company: ${data.company}  
-• Role: ${data.jobTitle}
-• AI Readiness Score: ${data.score}/100
+• ${data.jobTitle} at ${data.company}
+• AI Readiness: ${data.score}/100 (${data.score >= 80 ? 'Champion Ready' : data.score >= 60 ? 'High Potential' : data.score >= 40 ? 'Emerging Leader' : 'Starting Journey'})
 • Industry: ${cleanedResponses['industry-sector'] || 'geral'}
-• Team Size: ${cleanedResponses['department-size'] || 'não especificado'}
-• Company Type: ${cleanedResponses['company-context'] || 'não especificado'}
-• Primary Challenge: ${cleanedResponses['department-challenge'] || 'não especificado'}
-• Current Tools: ${cleanedResponses['current-tools'] || 'não especificado'}
-• Implementation Timeline: ${cleanedResponses['implementation-timeline'] || 'não especificado'}
-• Decision Authority: ${cleanedResponses['approval-process'] || 'não especificado'}
-• Success Metric: ${cleanedResponses['success-metric'] || 'não especificado'}
 
-${cleanedResponses['operational-challenges'] ? `
-SPECIFIC OPERATIONAL CHALLENGES PROVIDED BY USER:
-"${cleanedResponses['operational-challenges']}"
-CRITICAL: Use these specific details throughout the report to provide tailored solutions.
+CRITICAL DATA FOR CALCULATIONS:
+• Process to Automate: ${cleanedResponses['time-consuming-process'] || 'reporting-analytics'}
+• Current Time Waste: ${cleanedResponses['weekly-hours-wasted'] || '40'} hours/week
+• Error Impact: ${cleanedResponses['process-error-cost'] || 'high-impact'}
+• Budget Available: ${cleanedResponses['monthly-budget-available'] || 'R$ 2.000-10.000/mês'}
+• Tech Stack: ${cleanedResponses['current-tech-stack'] || 'spreadsheets, crm'}
+• Success Target: ${cleanedResponses['success-metric'] || 'cost-savings'}
+• Timeline Pressure: ${cleanedResponses['implementation-urgency'] || '90 dias'}
+• Team Size: ${cleanedResponses['team-impact-size'] || '21-50 pessoas'}
+• Main Concern: ${cleanedResponses['biggest-ai-concern'] || 'data-security'}
+
+${cleanedResponses['specific-process-description'] ? `
+USER'S EXACT PROCESS DESCRIPTION:
+"${cleanedResponses['specific-process-description']}"
+
+CRITICAL INSTRUCTIONS:
+1. Reference this EXACT process throughout the report
+2. Break down the specific steps they mentioned
+3. Calculate time savings for EACH step mentioned
+4. Recommend tools that automate THESE SPECIFIC tasks
 ` : ''}
 
-Create an ACTIONABLE operational efficiency report in JSON format. Focus on PRACTICAL SOLUTIONS and SPECIFIC TOOLS, not career platitudes.
+MANDATORY CALCULATIONS (use exact numbers from data):
+• Weekly hours: ${cleanedResponses['weekly-hours-wasted'] || '40'}
+• Hourly cost: R$ 150 (market average for ${cleanedResponses['industry-sector'] || 'business'} professionals)
+• Automation rate: 70% (industry standard for ${cleanedResponses['time-consuming-process'] || 'reporting'})
+• Hours saved weekly = ${cleanedResponses['weekly-hours-wasted'] || '40'} × 0.7 = ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7))}
+• Monthly savings = ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7))} × 4 × R$150 = R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150).toLocaleString('pt-BR')}
 
-TOOL RECOMMENDATIONS BY INDUSTRY:
-- Tecnologia: GitHub Copilot, Zapier, ChatGPT, Claude, Notion AI, Linear
-- Manufatura: PredictiveAI, Zapier, Power BI, ChatGPT for documentation
-- Saúde: Scribe AI, ChatGPT for research, HIPAA-compliant automation tools
-- Serviços Financeiros: Reconciliation AI, Excel + ChatGPT, compliance automation
-- Varejo: Inventory AI, ChatGPT for product descriptions, Shopify AI tools
-- Serviços Profissionais: ChatGPT, Claude, Zapier, document automation, CRM integration
+SPECIFIC TOOL RECOMMENDATIONS FOR THEIR CASE:
+Based on: ${cleanedResponses['time-consuming-process']} + ${cleanedResponses['monthly-budget-available']} + ${cleanedResponses['current-tech-stack']}
 
-COMMON PROCESS AUTOMATIONS:
-- Email management: Gmail filters + Zapier + ChatGPT templates
-- Report generation: Python scripts + ChatGPT + automated dashboards  
-- Data entry: OCR tools + validation algorithms + database integration
-- Document creation: ChatGPT templates + automated formatting
-- Meeting coordination: Calendly + Zapier + automated follow-ups
-- Customer service: Chatbots + knowledge base + escalation rules
+Must recommend EXACT tools with prices in BRL:
+• Primary tool: [Name + exact monthly cost in R$]
+• Integration tool: [Name + exact cost]
+• Training/Support: [Specific approach + cost]
 
-WRITING STYLE REQUIREMENTS:
-- Maximum 15 words per sentence
-- Use bullet points, not paragraphs
-- Include specific numbers and metrics
-- Mention actual AI tools by name (ChatGPT, Zapier, Claude, etc.)
-- Focus on time savings and efficiency gains
-- No generic business jargon or fluff
+SUCCESS METRIC FOCUS:
+They want: ${cleanedResponses['success-metric']}
+So emphasize: ${cleanedResponses['success-metric']?.includes('time') ? 'hours saved' : cleanedResponses['success-metric']?.includes('cost') ? 'R$ saved' : cleanedResponses['success-metric']?.includes('error') ? 'error elimination' : 'ROI percentage'}
 
-CRITICAL REQUIREMENTS:
-1. Write ACTIONABLE steps - include specific tools and processes
-2. Provide measurable outcomes (hours saved, % improvements, costs)
-3. Scale recommendations to their team size and authority level
-4. Include implementation steps, not just benefits
-5. Reference their industry context appropriately
-6. Focus on operational efficiency, not career advancement
+TIMELINE ADAPTATION:
+They need results in: ${cleanedResponses['implementation-urgency']}
+So structure phases as: ${cleanedResponses['implementation-urgency']?.includes('30 dias') ? 'Week 1-2, Week 3-4, Month 2-3' : cleanedResponses['implementation-urgency']?.includes('90 dias') ? 'Month 1, Month 2, Month 3' : 'Quarter 1, Quarter 2, Quarter 3-4'}
 
-CRITICAL: Return ONLY valid JSON. Start with { and end with }. No markdown formatting, no explanations, no text before or after the JSON.
+ADDRESSING THEIR CONCERN:
+Main worry: ${cleanedResponses['biggest-ai-concern']}
+Address this EXPLICITLY in quick wins and roadmap phases.
 
-Create detailed, specific content for each section:
+REPORT MUST BE SO GOOD THAT:
+1. User immediately sees the value and ROI
+2. Feels confident they can implement it
+3. Wants to share with their boss
+4. Saves it for future reference
+5. Books a consultation to go deeper
+
+JSON STRUCTURE (fill with REAL data, no placeholders):
 
 {
-  "executive_summary": "Score ${data.score}/100 indica [nível de prontidão]. Principais gargalos: [desafios específicos]. Automação de [processo X] pode economizar [X horas/semana]. Ferramentas de IA reduzirão custos operacionais em [X%] nos próximos 6 meses.",
+  "executive_summary": "Com score ${data.score}/100 e ${cleanedResponses['weekly-hours-wasted']} horas semanais gastas em ${cleanedResponses['time-consuming-process']}, identificamos economia potencial de R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150).toLocaleString('pt-BR')}/mês. Automatizando ${cleanedResponses['time-consuming-process']} com ferramentas dentro do orçamento de ${cleanedResponses['monthly-budget-available']}, ${data.company} alcançará ${cleanedResponses['success-metric']} em ${cleanedResponses['implementation-urgency']}. ROI projetado: ${Math.round(((Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150 - 2000) / 2000) * 100)}% com payback em ${Math.ceil(2000 / (Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150) * 30)} dias.",
   
   "department_challenges": [
-    "• Processo [específico] consome [X horas/dia] de trabalho manual",
-    "• Falta de automação em [área específica] causa [impacto mensurável]", 
-    "• [Ferramenta atual] não integra com [sistema Y], gerando retrabalho",
-    "• Análise de [dados específicos] demora [X dias] sem ferramentas adequadas",
-    "• Equipe gasta [X%] do tempo em tarefas que IA pode automatizar"
+    "Processo de ${cleanedResponses['time-consuming-process']} consome ${cleanedResponses['weekly-hours-wasted']} horas/semana da equipe de ${cleanedResponses['team-impact-size']}",
+    "Impacto ${cleanedResponses['process-error-cost']} dos erros gera retrabalho estimado em ${parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.2} horas adicionais/semana", 
+    "Falta de integração entre ${cleanedResponses['current-tech-stack']} causa duplicação de esforços em ${Math.round(parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.3)} horas/semana",
+    "Limitação orçamentária de ${cleanedResponses['monthly-budget-available']} exige soluções criativas e escalonáveis",
+    "Preocupação com ${cleanedResponses['biggest-ai-concern']} deve ser endereçada com [solução específica]"
   ],
   
   "career_impact": {
-    "personal_productivity": "• Economia de [X-Y] horas semanais através de [ferramenta específica]\n• Redução de [X%] em tarefas manuais repetitivas",
-    "team_performance": "• Aumento de [X%] na produtividade da equipe de [tamanho]\n• Melhoria de [X%] na precisão de [processo específico]",
-    "leadership_recognition": "• Liderança em automação posiciona para [oportunidade específica]\n• Resultados mensuráveis em [X semanas] demonstram competência técnica",
-    "professional_growth": "• Expertise em IA para [setor específico] aumenta valor de mercado\n• Habilidades em [ferramentas específicas] abrem [oportunidades]"
+    "personal_productivity": "Economia de ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7))} horas semanais (${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7) / 40 * 100)}% do tempo) automatizando ${cleanedResponses['time-consuming-process']}. Total anual: ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7) * 52)} horas liberadas para atividades estratégicas.",
+    "team_performance": "Impacto em ${cleanedResponses['team-impact-size']} com produtividade aumentando ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7) / parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 100)}%. Redução de ${cleanedResponses['process-error-cost']?.includes('critical') ? '95%' : cleanedResponses['process-error-cost']?.includes('high') ? '85%' : '70%'} nos erros operacionais.",
+    "leadership_recognition": "Entrega de ${cleanedResponses['success-metric']} em ${cleanedResponses['implementation-urgency']} posicionará você como líder em inovação. Case documentado para apresentar resultados de R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150 * 12).toLocaleString('pt-BR')}/ano.",
+    "professional_growth": "Domínio de ferramentas IA para ${cleanedResponses['industry-sector']} aumenta valor de mercado em 30-45%. Certificações em [ferramentas específicas recomendadas] são altamente valorizadas."
   },
   
   "quick_wins": {
     "month_1_actions": [
       { 
-        "action": "Implementar [ferramenta específica como ChatGPT/Zapier] para automatizar [processo específico]",
-        "impact": "Economia imediata de [X] horas semanais e redução de [Y%] em erros"
+        "action": "Implementar [ferramenta específica dentro do orçamento ${cleanedResponses['monthly-budget-available']}] para automatizar [parte específica do processo descrito]",
+        "impact": "Economia imediata de ${Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7) * 0.3)} horas/semana e ROI positivo em ${Math.ceil(2000 / ((Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 0.3) * 4 * 150) * 30)} dias"
       },
       { 
-        "action": "Configurar [ferramenta específica] para [tarefa específica do setor]",
-        "impact": "[X%] de melhoria em [métrica específica] em [tempo específico]"
+        "action": "Configurar integração entre [ferramenta IA] e ${cleanedResponses['current-tech-stack']} para eliminar entrada manual de dados",
+        "impact": "Redução de ${cleanedResponses['process-error-cost']?.includes('high') || cleanedResponses['process-error-cost']?.includes('critical') ? '90%' : '70%'} nos erros e economia de R$ ${Math.round((Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150) * 0.4).toLocaleString('pt-BR')}/mês"
       }
     ],
     "quarter_1_goals": [
       { 
-        "goal": "Automatizar completamente [processo específico] usando [ferramentas específicas]",
-        "outcome": "[X%] de redução no tempo de [processo] e economia de R$ [valor]"
+        "goal": "Automatizar 100% do processo de ${cleanedResponses['time-consuming-process']} com [ferramentas específicas]",
+        "outcome": "Alcançar ${cleanedResponses['success-metric']} e economizar R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150).toLocaleString('pt-BR')}/mês"
       },
       { 
-        "goal": "Treinar equipe em [X ferramentas de IA específicas] relevantes para [setor]",
-        "outcome": "Capacitação que reduz dependência externa e acelera [processo específico]"
+        "goal": "Resolver preocupação com ${cleanedResponses['biggest-ai-concern']} através de [abordagem específica]",
+        "outcome": "Confiança para escalar solução para ${cleanedResponses['team-impact-size']} com segurança total"
       }
     ]
   },
   
   "implementation_roadmap": [
     {
-      "phase": "Automação Básica",
-      "duration": "4-6 semanas",
-      "description": "• Implementar [2-3 ferramentas específicas] para [processos específicos]\n• Configurar integrações com [sistemas atuais]",
-      "career_benefit": "Demonstração prática de resultados em IA para [setor específico]"
+      "phase": "Implementação Rápida",
+      "duration": "${cleanedResponses['implementation-urgency']?.includes('30 dias') ? '2-3 semanas' : cleanedResponses['implementation-urgency']?.includes('90 dias') ? '4-6 semanas' : '6-8 semanas'}",
+      "description": "Deploy de [ferramenta específica] para automatizar ${cleanedResponses['time-consuming-process']} conforme descrito. Integração inicial com ${cleanedResponses['current-tech-stack']}. Treinamento da equipe piloto. Resolução da preocupação com ${cleanedResponses['biggest-ai-concern']} através de [medidas específicas].",
+      "career_benefit": "Resultados mensuráveis em ${cleanedResponses['implementation-urgency']?.includes('30 dias') ? '2 semanas' : '4 semanas'} para reportar à liderança"
     },
     {
-      "phase": "Otimização Avançada", 
-      "duration": "8-12 semanas",
-      "description": "• Expandir automação para [processos mais complexos]\n• Implementar analytics com [ferramentas específicas]",
-      "career_benefit": "Expertise comprovada em implementação de IA em [contexto específico]"
+      "phase": "Otimização e Escala", 
+      "duration": "${cleanedResponses['implementation-urgency']?.includes('30 dias') ? '4-6 semanas' : cleanedResponses['implementation-urgency']?.includes('90 dias') ? '8-10 semanas' : '12-16 semanas'}",
+      "description": "Expansão para ${cleanedResponses['team-impact-size']} completa. Automação de [subprocessos específicos]. Dashboard de ROI mostrando R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150).toLocaleString('pt-BR')}/mês economizados.",
+      "career_benefit": "Case documentado com ${Math.round(((Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150 - 2000) / 2000) * 100)}% ROI para apresentações executivas"
     },
     {
-      "phase": "Escalabilidade Departamental",
-      "duration": "3-6 meses", 
-      "description": "• Replicar soluções para outros [departamentos/processos]\n• Estabelecer governança de IA com [frameworks específicos]",
-      "career_benefit": "Reconhecimento como especialista interno em transformação digital"
+      "phase": "Liderança Organizacional",
+      "duration": "${cleanedResponses['implementation-urgency']?.includes('30 dias') ? '2-3 meses' : cleanedResponses['implementation-urgency']?.includes('90 dias') ? '3-4 meses' : '6-8 meses'}", 
+      "description": "Centro de excelência em IA para ${cleanedResponses['industry-sector']}. Expansão para processos relacionados. Programa de mentoria interna. Economia anual documentada: R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150 * 12).toLocaleString('pt-BR')}.",
+      "career_benefit": "Reconhecimento como principal especialista em IA da ${data.company} e referência no setor"
     }
   ]
 }
 
-MANDATORY: 
-- Replace ALL placeholder text with actual, specific recommendations
-- Use real tool names (ChatGPT, Zapier, Claude, Notion AI, etc.)
-- Include specific time estimates and cost savings
-- Reference their actual industry and team size
-- Focus on OPERATIONAL EFFICIENCY, not career benefits
-- Make every recommendation immediately actionable
+CRITICAL SUCCESS FACTORS:
+1. Use EXACT numbers from their data (${cleanedResponses['weekly-hours-wasted']} hours, R$ ${(Math.round((parseInt(cleanedResponses['weekly-hours-wasted'] || '40') * 0.7)) * 4 * 150).toLocaleString('pt-BR')} savings)
+2. Reference their SPECIFIC process description throughout
+3. Recommend tools within their EXACT budget range
+4. Address their MAIN concern (${cleanedResponses['biggest-ai-concern']})
+5. Align timeline with their urgency (${cleanedResponses['implementation-urgency']})
+6. Make them feel this is THEIR custom plan, not generic advice
 
-CONCISÃO OBRIGATÓRIA: Máximo 15 palavras por frase. Foque em resultados mensuráveis. Elimine texto genérico.`;
+RETURN ONLY VALID JSON. No markdown, no explanations, no placeholders.`;
 
   console.log('📝 Sending prompt to Anthropic API, length:', prompt.length);
   

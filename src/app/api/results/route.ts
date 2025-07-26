@@ -33,6 +33,15 @@ export async function GET(request: NextRequest) {
     // Use the AI report from database first, then fallback to store, then error message
     const storedReport = getAIReport(id);
     console.log('🔍 Looking for report ID:', id, 'Found in DB:', !!result.ai_report, 'DB report length:', result.ai_report?.length || 0, 'Found in store:', !!storedReport);
+    
+    // DEBUG: Log first 200 chars of report to see if it's personalized
+    if (result.ai_report) {
+      console.log('🔍 DB Report preview:', result.ai_report.substring(0, 200));
+    }
+    if (storedReport) {
+      console.log('🔍 Store Report preview:', storedReport.substring(0, 200));
+    }
+    
     const aiReport = result.ai_report || storedReport || `# Premium AI Report Not Available
     
 Your AI Readiness Score of ${result.score}/100 has been calculated, but the detailed report is currently being generated. Please check back in a few minutes or contact support if this issue persists.
