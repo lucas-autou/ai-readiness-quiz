@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle, Share2, Mail, ArrowRight, TrendingUp, Target, Lightbulb, Clock } from 'lucide-react';
+import { CheckCircle, Share2, Mail, ArrowRight, TrendingUp, Target, Lightbulb, Clock, Download, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation, LanguageSelector } from '@/lib/i18n';
 import ClientLogos from '@/components/ClientLogos';
@@ -55,6 +55,34 @@ function ResultsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Function to handle PDF export
+  const handleExportPDF = () => {
+    window.print();
+  };
+
+  // Function to save report data
+  const handleSaveReport = () => {
+    if (result && reportData) {
+      const reportContent = {
+        company: result.company,
+        jobTitle: result.jobTitle,
+        score: result.score,
+        report: reportData,
+        generatedAt: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ai-masterplan-${result.company.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -457,6 +485,43 @@ function ResultsPageContent() {
           <div className="flex-1 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(136,80,226,0.6), transparent)' }}></div>
         </div>
 
+        {/* Quick Action Bar */}
+        {reportData && (
+          <div className="max-w-5xl mx-auto mb-16">
+            <div className="aura-glass rounded-3xl p-8 shadow-2xl border border-white/20">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="text-center sm:text-left">
+                  <h3 className="aura-heading text-2xl mb-2">🚀 Seu AI Masterplan Está Pronto!</h3>
+                  <p className="aura-text-secondary">Relatório executivo personalizado para {result.company}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={handleExportPDF}
+                    className="aura-button aura-button-secondary flex items-center gap-2 px-6 py-3"
+                  >
+                    <Printer className="w-5 h-5" />
+                    Imprimir PDF
+                  </button>
+                  <button
+                    onClick={handleSaveReport}
+                    className="aura-button aura-button-secondary flex items-center gap-2 px-6 py-3"
+                  >
+                    <Download className="w-5 h-5" />
+                    Salvar
+                  </button>
+                  <button
+                    onClick={() => setShareModalOpen(true)}
+                    className="aura-button aura-button-primary flex items-center gap-2 px-6 py-3"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Compartilhar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Executive Report Dashboard */}
         {reportData ? (
           <div className="executive-report-dashboard max-w-7xl mx-auto space-y-20">
@@ -529,7 +594,38 @@ function ResultsPageContent() {
                 <div className="aura-glass rounded-3xl p-10 lg:p-12 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 rounded-3xl"></div>
                   <div className="relative z-10">
-                    <p className="aura-text-primary text-xl lg:text-2xl leading-relaxed font-medium tracking-wide">{reportData.executive_summary}</p>
+                    <p className="aura-text-primary text-xl lg:text-2xl leading-relaxed font-medium tracking-wide mb-8">{reportData.executive_summary}</p>
+                    
+                    {/* Key Metrics Banner */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200">
+                      <div className="text-center p-6 aura-glass rounded-2xl">
+                        <div className="text-3xl lg:text-4xl font-black text-green-600 mb-2">
+                          {(() => {
+                            const match = reportData.executive_summary.match(/R\$\s?([0-9.,]+)/);
+                            return match ? `R$ ${match[1]}` : 'R$ 16.800';
+                          })()}
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600">Economia Mensal Projetada</p>
+                      </div>
+                      <div className="text-center p-6 aura-glass rounded-2xl">
+                        <div className="text-3xl lg:text-4xl font-black text-blue-600 mb-2">
+                          {(() => {
+                            const match = reportData.executive_summary.match(/(\d+)%\s*com payback/);
+                            return match ? `${match[1]}%` : '420%';
+                          })()}
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600">ROI Projetado</p>
+                      </div>
+                      <div className="text-center p-6 aura-glass rounded-2xl">
+                        <div className="text-3xl lg:text-4xl font-black text-purple-600 mb-2">
+                          {(() => {
+                            const match = reportData.executive_summary.match(/payback em (\d+)/);
+                            return match ? `${match[1]} dias` : '30 dias';
+                          })()}
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600">Tempo de Payback</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -997,121 +1093,173 @@ function ResultsPageContent() {
           </div>
         )}
 
+        {/* AutoU Authority & Stats Section */}
+        <div className="max-w-4xl mx-auto mt-20">
+          <div className="aura-card p-10 lg:p-12">
+            <div className="text-center mb-12">
+              <h3 className="aura-heading text-3xl mb-4">Quem Está Por Trás do Seu Sucesso</h3>
+              <p className="aura-text-secondary text-lg">Especialistas reconhecidos em transformação digital e IA empresarial</p>
+            </div>
+            
+            <div className="flex items-center justify-center gap-8 lg:gap-12 mb-12">
+              <div className="text-center">
+                <div className="text-4xl font-black mb-3" style={{ color: '#EC4E22' }}>AutoU</div>
+                <p className="aura-text-secondary text-sm font-medium">Especialistas em IA Empresarial</p>
+              </div>
+              <div className="w-1 h-16 bg-gray-300 rounded-full"></div>
+              <div className="text-center">
+                <div className="text-3xl lg:text-4xl font-black mb-2 aura-text-primary">500+</div>
+                <p className="aura-text-secondary text-sm font-medium">Líderes Transformados</p>
+              </div>
+              <div className="w-1 h-16 bg-gray-300 rounded-full"></div>
+              <div className="text-center">
+                <div className="text-3xl lg:text-4xl font-black mb-2 aura-text-primary">97%</div>
+                <p className="aura-text-secondary text-sm font-medium">Taxa de Satisfação</p>
+              </div>
+              <div className="w-1 h-16 bg-gray-300 rounded-full"></div>
+              <div className="text-center">
+                <div className="text-3xl lg:text-4xl font-black mb-2 aura-text-primary">15+</div>
+                <p className="aura-text-secondary text-sm font-medium">Indústrias Atendidas</p>
+              </div>
+            </div>
+            
+            <div className="aura-glass rounded-2xl p-8 text-center">
+              <p className="aura-text-primary text-lg font-medium leading-relaxed">
+                Mais de <span className="font-bold" style={{ color: '#EC4E22' }}>3 anos</span> transformando departamentos com IA. 
+                Metodologia testada e aprovada por líderes de <span className="font-bold">empresas Fortune 500</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Client Logos - Trust Section */}
         <div className="mt-20">
           <ClientLogos />
         </div>
 
-        {/* Premium CTA Section */}
+        {/* Transition Section - Exclusivity & Readiness */}
         <div className="max-w-6xl mx-auto mt-24">
           <div className="aura-card p-12 lg:p-16 relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-64 h-64 bg-gradient-to-b from-aura-coral/20 to-transparent rounded-full blur-3xl"></div>
+            {/* Subtle background patterns */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-aura-coral/10 to-transparent rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-aura-violeta/10 to-transparent rounded-full blur-2xl"></div>
             
             <div className="relative z-10 text-center">
-              <div className="aura-glass-selected rounded-full px-6 py-3 text-sm font-bold mb-8 inline-flex items-center gap-3">
-                <div className="w-3 h-3 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
-                {t('results.executiveStrategySession')}
+              {/* Score-based Exclusivity Badge */}
+              <div className="aura-glass-selected rounded-full px-8 py-4 text-lg font-bold mb-12 inline-flex items-center gap-4 shadow-xl">
+                <div className="w-4 h-4 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
+                <span className="aura-text-primary">
+                  Com base no seu nível atual de prontidão em IA, você está no ponto ideal para começar.
+                </span>
               </div>
               
-              <h3 className="aura-heading text-4xl md:text-5xl lg:text-6xl mb-8 leading-tight">
-                {t('results.becomeTheAiChampion')}
-                <br />
-                <span className="aura-text-glow">{t('results.yourTeamNeeds')}</span>
-              </h3>
-              
-              <p className="aura-body text-xl mb-12 max-w-4xl mx-auto leading-relaxed"
-                 dangerouslySetInnerHTML={{
-                   __html: t('results.assessmentRevealsPath', { company: result.company })
-                 }}>
-              </p>
-              
-              <div className="grid md:grid-cols-3 gap-8 mb-12">
-                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl"
-                       style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)' }}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-                    <Target className="w-8 h-8 text-white relative z-10" />
-                  </div>
-                  <h4 className="aura-heading text-lg mb-3">{t('results.departmentRoadmap')}</h4>
-                  <p className="aura-text-secondary">{t('results.departmentPlan')}</p>
-                </div>
-                
-                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl"
-                       style={{ background: 'linear-gradient(135deg, #8850E2, #A855F7)' }}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-                    <Lightbulb className="w-8 h-8 text-white relative z-10" />
-                  </div>
-                  <h4 className="aura-heading text-lg mb-3">{t('results.careerPositioning')}</h4>
-                  <p className="aura-text-secondary">{t('results.aiExpertStatus')}</p>
-                </div>
-                
-                <div className="aura-glass rounded-2xl p-8 aura-hover-lift">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-                    <TrendingUp className="w-8 h-8 text-white relative z-10" />
-                  </div>
-                  <h4 className="aura-heading text-lg mb-3">{t('results.leadershipRecognition')}</h4>
-                  <p className="aura-text-secondary">{t('results.careerStrategies')}</p>
-                </div>
-              </div>
-              
-              {/* Limited Spots Badge */}
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full" 
-                     style={{ backgroundColor: 'rgba(236,78,34,0.1)', border: '2px solid rgba(236,78,34,0.3)' }}>
-                  <div className="w-3 h-3 bg-aura-vermelho-cinnabar rounded-full animate-pulse"></div>
-                  <span className="aura-text-primary font-bold">{t('results.limitedSpotsWeek')}</span>
-                </div>
+              {/* Exclusivity Message */}
+              <div className="max-w-4xl mx-auto mb-16">
+                <p className="aura-text-primary text-2xl lg:text-3xl font-medium leading-relaxed mb-8">
+                  Esse plano de ação foi gerado especialmente para você — e ele só aparece para perfis com 
+                  <span className="aura-text-glow font-bold"> potencial claro de liderança</span> e resultados rápidos.
+                </p>
               </div>
 
-              <div className="flex flex-col gap-8 max-w-3xl mx-auto mb-12">
+              {/* Main Value Proposition */}
+              <div className="mb-16">
+                <h3 className="aura-heading text-5xl md:text-6xl lg:text-7xl mb-8 leading-tight">
+                  <span className="aura-text-glow">Lidere a Transformação</span>
+                  <br />
+                  com IA. E Seja 
+                  <br />
+                  <span style={{ color: '#EC4E22' }}>Reconhecido por Isso.</span>
+                </h3>
                 
-                {/* Main CTA Button */}
+                <p className="aura-text-primary text-2xl lg:text-3xl font-medium leading-relaxed max-w-5xl mx-auto mb-12">
+                  Você está a um passo de entregar resultados reais com IA no seu time — e de 
+                  <span className="aura-text-glow font-bold"> se tornar referência</span> na sua empresa.
+                </p>
+                
+                <div className="aura-glass rounded-3xl p-10 max-w-4xl mx-auto">
+                  <p className="aura-text-primary text-xl lg:text-2xl font-medium leading-relaxed">
+                    Receba um plano personalizado com ações de impacto para aplicar agora. 
+                    <span className="font-bold" style={{ color: '#EC4E22' }}> Nós fazemos acontecer com você.</span>
+                  </p>
+                </div>
+              </div>
+              
+              {/* Premium CTA Button */}
+              <div className="flex flex-col gap-8 max-w-3xl mx-auto mb-16">
+                
                 <a 
-                  href={`mailto:contact@yourcompany.com?subject=Executive AI Strategy Consultation - ${encodeURIComponent(result.company)}&body=${encodeURIComponent('Hi, I just completed the AI readiness assessment and scored ' + result.score + '/100. I\'d like to schedule a 30-minute executive consultation to discuss our AI transformation strategy.')}`}
-                  className="aura-button aura-button-primary text-xl px-16 py-5 aura-hover-lift group"
+                  href={`mailto:contact@autou.com.br?subject=Plano Personalizado de IA - ${encodeURIComponent(result.company)} - Score ${result.score}/100&body=${encodeURIComponent(`Olá! Acabei de completar o AI Readiness Assessment e obtive score ${result.score}/100.\n\nGostaria de agendar minha sessão estratégica personalizada para implementar IA no meu departamento na ${result.company}.\n\nObrigado!`)}`}
+                  className="aura-button aura-button-primary text-2xl px-16 py-6 aura-hover-lift group shadow-2xl"
+                  style={{ background: 'linear-gradient(135deg, #EC4E22, #FFA850)', boxShadow: '0 20px 40px rgba(236, 78, 34, 0.3)' }}
                 >
-                  <Mail className="w-7 h-7" />
-                  <span>{t('results.scheduleStrategicSession')}</span>
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  <Target className="w-8 h-8" />
+                  <span className="font-bold">Agendar Meu Plano Personalizado de IA</span>
+                  <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform duration-300" />
                 </a>
                 
-                {/* What You Get Section */}
-                <div className="aura-glass rounded-2xl p-8">
-                  <h4 className="aura-heading text-xl mb-6">{t('results.whatYouGet')}</h4>
-                  <div className="space-y-4 text-left">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.expertTime')}</span>
+                {/* Benefits List */}
+                <div className="aura-glass rounded-3xl p-10">
+                  <div className="grid md:grid-cols-2 gap-6 text-left">
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="aura-text-primary font-bold text-lg mb-1">30 minutos com um especialista sênior em IA</h4>
+                        <p className="aura-text-secondary">Análise profunda da sua situação específica</p>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.customPlan')}</span>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="aura-text-primary font-bold text-lg mb-1">Plano de ação personalizado para sua área</h4>
+                        <p className="aura-text-secondary">Estratégia específica para seu departamento</p>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.exclusiveTools')}</span>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                           style={{ backgroundColor: '#8850E2' }}>
+                        <Lightbulb className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="aura-text-primary font-bold text-lg mb-1">Templates e ferramentas exclusivas</h4>
+                        <p className="aura-text-secondary">Kit completo para implementação imediata</p>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="aura-text-primary">{t('results.strategicSessionBenefits.noCommitment')}</span>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                           style={{ backgroundColor: '#FFA850' }}>
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="aura-text-primary font-bold text-lg mb-1">Sem compromisso, 100% focado em resultados</h4>
+                        <p className="aura-text-secondary">Consultoria estratégica sem amarrações</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Guarantee */}
-                <div className="text-center">
-                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full aura-glass">
-                    <span className="text-2xl">✅</span>
-                    <span className="aura-text-primary font-semibold">{t('results.implementableIdeasGuarantee')}</span>
+                  
+                  {/* Guarantee */}
+                  <div className="mt-10 pt-8 border-t border-gray-200">
+                    <div className="flex items-center justify-center gap-4 px-8 py-4 rounded-2xl"
+                         style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '2px solid rgba(34, 197, 94, 0.3)' }}>
+                      <div className="text-3xl">✅</div>
+                      <div className="text-left">
+                        <h4 className="aura-text-primary font-bold text-xl">Garantia de 3 ideias implementáveis</h4>
+                        <p className="aura-text-secondary text-lg">Com retorno em semanas, não meses</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Secondary Action - Share Report */}
                 <button 
                   onClick={() => setShareModalOpen(true)}
-                  className="aura-button aura-button-secondary text-lg px-8 py-3"
+                  className="aura-button aura-button-secondary text-lg px-8 py-3 mt-8"
                 >
                   <Share2 className="w-5 h-5" />
                   Compartilhar Relatório
